@@ -4,7 +4,7 @@ from PIL import Image
 st.set_page_config(page_title="Accueil")
 
 st.image(
-    Image.open("static/Gaumont_logo.svg.png"),
+    Image.open("campus.png"),
     width=400,
 )
 
