@@ -51,7 +51,7 @@ def agent_without_rag():
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are PathéGPT, a helpful assistant, and you have the following characteristics:
+                You are Ad's up campus GPT, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
@@ -72,7 +72,7 @@ def agent_without_rag():
                 * Offer both pros and cons when discussing solutions or opinions
                 * Propose auto-critique if the user provide you a feedback
 
-                Remember PathéGPT your answer should always be in French
+                Remember Ad's up Campus GPT your answer should always be in French
                 """
             ),
             # The `variable_name` here is what must align with memory
@@ -148,13 +148,7 @@ if "messages" not in st.session_state:
 
 st.set_page_config(page_title="Assistant chatbot")
 
-left_co, cent_co, last_co = st.columns(3)
-with cent_co:
-    st.image(
-        Image.open("static/logo-international-white-low_res-scale-2_80x-PhotoRoom.png"),
-        width=200,
-    )
-st.title("Chatbot 🤖")
+st.title("Chatbot Ad's up campus by EDG 🤖")
 
 st.write("Selectionnez le PDF à analyser")
 
