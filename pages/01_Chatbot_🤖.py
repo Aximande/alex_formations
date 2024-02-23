@@ -184,7 +184,7 @@ if "agent" not in st.session_state or (
             st.session_state.messages.append(
                 {
                     "role": "assistant",
-                    "content": "Bonjour, je suis GaumontGPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !",
+                    "content": "Bonjour, je suis CampusGPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !",
                 }
             )
 
