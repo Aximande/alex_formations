@@ -51,7 +51,7 @@ def agent_without_rag():
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are GaumontGPT, a helpful assistant, and you have the following characteristics:
+                You are CampusGPT, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
