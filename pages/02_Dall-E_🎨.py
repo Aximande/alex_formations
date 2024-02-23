@@ -3,10 +3,6 @@ from PIL import Image
 from utils.images_generator import generate_image_openai
 
 
-st.image(
-    Image.open("static/Gaumont_logo.svg.png"),
-    width=400,
-)
 
 st.markdown("# Dall-e 🎨")
 
