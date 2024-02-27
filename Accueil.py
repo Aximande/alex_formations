@@ -6,7 +6,7 @@ st.set_page_config(page_title="Accueil")
 left_co, cent_co, last_co = st.columns(3)
 with cent_co:
     st.image(
-        Image.open("static/bpilogo.png"),
+        Image.open("static/bpilogo1.png"),
         width=200,
     )
 
