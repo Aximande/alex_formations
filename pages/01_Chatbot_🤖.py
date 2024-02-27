@@ -151,7 +151,7 @@ st.set_page_config(page_title="Assistant chatbot")
 left_co, cent_co, last_co = st.columns(3)
 with cent_co:
     st.image(
-        Image.open("static/bpilogo.png"),
+        Image.open("static/bpilogo1.png"),
         width=200,
     )
 st.title("Chatbot 🤖")
