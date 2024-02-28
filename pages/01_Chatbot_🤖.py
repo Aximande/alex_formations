@@ -146,19 +146,26 @@ def query(agent, question):
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.set_page_config(page_title="Assistant chatbot")
+st.set_page_config(page_title="Assistant chatbot", layout="wide")
 
-left_co, cent_co, last_co = st.columns(3)
-with cent_co:
-    st.image(
-        Image.open("static/pathe-logo-clean-PhotoRoom.png"),
-        width=200,
-    )
-st.title("Chatbot 🤖")
+# Improved layout with centered elements
+st.container()
+with st.container():
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.image(
+            Image.open("static/pathe-logo-clean-PhotoRoom.png"),
+            width=200,
+        )
+st.title("Chatbot Pathé GPT 🤖")
 
-st.write("Selectionnez le PDF à analyser")
+st.write("Sélectionnez le PDF à analyser")
 
-file = st.file_uploader("Upload a pdf", type="pdf")
+# File uploader centered
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    file = st.file_uploader("", type="pdf")
+
 if "agent" not in st.session_state or (
     file is not None
     and (
@@ -178,14 +185,16 @@ if "agent" not in st.session_state or (
 
         else:
             st.session_state.agent = agent_without_rag()
-            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis Pathé GPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
+            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis BPI IO, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
 
 
-# Display chat messages from history on app rerun
+# Display chat messages with improved styling
 if "messages" in st.session_state:
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        chat_container = st.container()
+        with chat_container:
+            st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
+
 
 response = ""
 # React to user input
@@ -198,6 +207,12 @@ if "agent" in st.session_state:
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         response = query(st.session_state.agent, prompt)
+
+# Display assistant response with improved styling
+if "agent" in st.session_state and response:
+    chat_container = st.container()
+    with chat_container:
+        st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{response}</p></div>", unsafe_allow_html=True)
 
 
 # Display assistant response in chat message container
