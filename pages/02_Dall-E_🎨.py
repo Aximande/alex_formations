@@ -2,54 +2,33 @@ import streamlit as st
 from PIL import Image
 from utils.images_generator import generate_image_openai
 
-# Custom CSS to inject into the webpage
-st.markdown(
-    """
-    <style>
-    .big-font {
-        font-size:30px !important;
-        font-weight: bold;
+# Configurer le style de la page avec les paramètres du thème si ce n'est pas déjà fait
+st.set_page_config(
+    page_title="Créateur d'Images DALL-E",
+    page_icon=":art:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://www.pathedalle.com/help',
+        'About': "# C'est une application pour générer des images avec DALL-E!"
     }
-    .image-gen-container {
-        text-align: center;
-        margin-top: 2rem;
-    }
-    .stButton>button {
-        width: 100%;
-        border-radius: 20px;
-        padding: 10px;
-        font-size: 16px;
-        font-weight: bold;
-        color: white;
-        background-color: #f4bc47;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
 )
 
-# Header image
-st.image("static/pathe-logo-clean-PhotoRoom.png", width=200)
+# Utilisation des colonnes pour un meilleur layout
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
+    st.image(Image.open("static/pathe-logo-clean-PhotoRoom.png"), width=200)
+    st.markdown("# Dall-e 🎨")
 
-# Title and description
-st.markdown("<div class='big-font'>Dall-e 🎨</div>", unsafe_allow_html=True)
-st.write("Décrivez l'image que vous souhaitez générer dans la zone de saisie ci-dessous et appuyez sur Entrée.")
+# Zone de texte plus grande pour la description de l'image
+input_text = st.text_area("Décrivez l'image que vous souhaitez générer", height=150, placeholder="Entrez une description détaillée de l'image ici...")
+submit_button = st.button("Générer")
 
-# User input with a bit more style
-input_container = st.container()
-col1, col2 = st.columns([0.8, 0.2])
-
-with input_container:
-    with col1:
-        input_text = st.text_input("", "Description de l'image", key="input_text")
-    with col2:
-        # Button to generate image
-        if st.button('Générer'):
-            if input_text:
-                with st.spinner("Création de l'image..."):
-                    # Generate and display the image
-                    st.markdown("<div class='image-gen-container'>", unsafe_allow_html=True)
-                    st.image(generate_image_openai(input_text), width=703)
-                    st.markdown("</div>", unsafe_allow_html=True)
-            else:
-                st.error("Veuillez entrer une description.")
+# Validation de l'entrée utilisateur
+if submit_button:
+    if input_text:
+        with st.spinner("Création de l'image..."):
+            generated_image = generate_image_openai(input_text)
+            st.image(generated_image, width=703)
+    else:
+        st.error("Veuillez entrer une description pour générer l'image.")
