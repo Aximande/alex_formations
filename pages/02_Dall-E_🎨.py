@@ -1,20 +1,30 @@
-import streamlit as st
-from PIL import Image
-from utils.images_generator import generate_image_openai
+# Configurer le style de la page avec les paramètres du thème si ce n'est pas déjà fait
+st.set_page_config(
+    page_title="Créateur d'Images DALL-E",
+    page_icon=":art:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'demandez alex',
+        'About': "# C'est une application pour générer des images avec DALL-E!"
+    }
+)
 
+# Utilisation des colonnes pour un meilleur layout
+left_col, center_col, right_col = st.columns([1, 2, 1])
+with center_col:
+    st.image(Image.open("static/bpilogo1.png"), width=200)
+    st.markdown("# Dall-e 🎨")
 
-left_co, cent_co, last_co = st.columns(3)
-with cent_co:
-    st.image(
-        Image.open("static/bpilogo1.png"),
-        width=200,
-    )
+# Zone de texte plus grande pour la description de l'image
+input_text = st.text_area("Décrivez l'image que vous souhaitez générer", height=150, placeholder="Entrez une description détaillée de l'image ici...")
+submit_button = st.button("Générer")
 
-st.markdown("# Dall-e 🎨")
-
-
-# we create a conversation with the user to create images using function generate_image_openai
-input_text = st.text_input("Decrivez l'image que vous souhaitez générer")
-if input_text:
-    with st.spinner("Creation de l'image..."):
-        st.image(generate_image_openai(input_text), width=703)
+# Validation de l'entrée utilisateur
+if submit_button:
+    if input_text:
+        with st.spinner("Création de l'image..."):
+            generated_image = generate_image_openai(input_text)
+            st.image(generated_image, width=703)
+    else:
+        st.error("Veuillez entrer une description pour générer l'image.")
