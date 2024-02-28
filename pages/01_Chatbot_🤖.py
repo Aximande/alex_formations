@@ -51,7 +51,7 @@ def agent_without_rag():
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are Ad's up campus GPT, a helpful assistant, and you have the following characteristics:
+                You are Pathé GPT, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
@@ -72,7 +72,7 @@ def agent_without_rag():
                 * Offer both pros and cons when discussing solutions or opinions
                 * Propose auto-critique if the user provide you a feedback
 
-                Remember Ad's up Campus GPT your answer should always be in French
+                Remember Pathé GPT your answer should always be in French
                 """
             ),
             # The `variable_name` here is what must align with memory
@@ -112,7 +112,7 @@ def rag_tool_openai(filename: str):
     )
 
     context = """
-    You are an helpful assistant for question-answering and summarizing tasks on PDF. 
+    You are an helpful assistant for question-answering and summarizing tasks on PDF.
 
     Your task will be to complete the request of the user and using the provided PDF by the user.If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise
 
@@ -133,7 +133,7 @@ def rag_tool_openai(filename: str):
 
 
 def query(agent, question):
-    with st.spinner("Waiting for response..."):
+    with st.spinner("en attente de la réponse.."):
         response = agent({"input": question})
         if "text" in response:
             response = response["text"]
@@ -148,7 +148,13 @@ if "messages" not in st.session_state:
 
 st.set_page_config(page_title="Assistant chatbot")
 
-st.title("Chatbot Ad's up campus by EDG 🤖")
+left_co, cent_co, last_co = st.columns(3)
+with cent_co:
+    st.image(
+        Image.open("static/pathe-logo-clean-PhotoRoom.png"),
+        width=200,
+    )
+st.title("Chatbot 🤖")
 
 st.write("Selectionnez le PDF à analyser")
 
@@ -172,8 +178,8 @@ if "agent" not in st.session_state or (
 
         else:
             st.session_state.agent = agent_without_rag()
-            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis PathéGPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
-        
+            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis BPI IO, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
+
 
 # Display chat messages from history on app rerun
 if "messages" in st.session_state:
