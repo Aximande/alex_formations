@@ -178,7 +178,7 @@ if "agent" not in st.session_state or (
 
         else:
             st.session_state.agent = agent_without_rag()
-            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis BPI IO, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
+            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis Pathé GPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
 
 
 # Display chat messages from history on app rerun
