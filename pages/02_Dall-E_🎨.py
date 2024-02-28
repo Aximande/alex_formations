@@ -1,3 +1,7 @@
+import streamlit as st
+from PIL import Image
+from utils.images_generator import generate_image_openai
+
 # Configurer le style de la page avec les paramètres du thème si ce n'est pas déjà fait
 st.set_page_config(
     page_title="Créateur d'Images DALL-E",
@@ -5,7 +9,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'demandez alex',
+        'Get Help': 'https://www.pathedalle.com/help',
         'About': "# C'est une application pour générer des images avec DALL-E!"
     }
 )
