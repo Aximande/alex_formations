@@ -208,13 +208,6 @@ if "agent" in st.session_state:
         st.session_state.messages.append({"role": "user", "content": prompt})
         response = query(st.session_state.agent, prompt)
 
-# Display assistant response with improved styling
-if "agent" in st.session_state and response:
-    chat_container = st.container()
-    with chat_container:
-        st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{response}</p></div>", unsafe_allow_html=True)
-
-
 # Display assistant response in chat message container
 if "agent" in st.session_state:
     with st.chat_message("assistant"):
