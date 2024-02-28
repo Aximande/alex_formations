@@ -3,6 +3,12 @@ from PIL import Image
 
 st.set_page_config(page_title="Accueil")
 
+left_co, cent_co, last_co = st.columns(3)
+with cent_co:
+    st.image(
+        Image.open("static/pathe-logo-clean-PhotoRoom.png"),
+        width=200,
+    )
 
 st.title("Accueil")
 st.write("Bienvenue sur notre application de démonstration !")
