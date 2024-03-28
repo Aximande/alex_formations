@@ -11,7 +11,7 @@ with cent_co:
     )
 
 st.title("Accueil")
-st.write("Bienvenue sur notre application de démonstration !")
+st.write("Ad's up campus: Bienvenue sur notre application de démonstration !")
 st.write("Cette application est divisée en 3 pages :")
 st.write("1. Accueil")
 st.write("2. Chatbot 🤖")
