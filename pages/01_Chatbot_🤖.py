@@ -33,11 +33,8 @@ unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key
+os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
 
-# Initialize CallbackManager with StreamingStdOutCallbackHandler for observability
-callback_manager = CallbackManager()
-callback_manager.register_handler(StreamingStdOutCallbackHandler())
 
 def prepare_file(uploaded_file):
     if uploaded_file:
@@ -89,7 +86,7 @@ def agent_without_rag():
     )
 
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    conversation = LLMChain(llm=llm, prompt=prompt, verbose=True, memory=memory, callback_manager=callback_manager)  # Now including callback_manager
+    conversation = LLMChain(llm=llm, prompt=prompt, verbose=True, memory=memory) 
     return conversation
 
 def rag_tool_openai(filename: str):
@@ -105,7 +102,6 @@ def rag_tool_openai(filename: str):
         retriever,
         "search_in_document",
         "Searches and returns documents.",
-        callback_manager=callback_manager  # Pass the callback_manager here
     )
     tools = [tool]
 
@@ -140,7 +136,6 @@ def rag_tool_openai(filename: str):
         tools,
         system_message=sys_message,
         verbose=True,
-        callback_manager=callback_manager  # And also here
     )
 
     return agent_executor
