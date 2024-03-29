@@ -5,6 +5,7 @@ from PIL import Image
 from uuid import uuid4
 import requests
 from io import BytesIO
+from langchain.chat_models import ChatOpenAI
 
 # Callbacks for observability
 from langchain.callbacks.manager import CallbackManager
@@ -12,7 +13,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
-from langchain_openai import OpenAI
+
 
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
