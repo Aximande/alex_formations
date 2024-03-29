@@ -1,7 +1,6 @@
 import streamlit as st
 from PIL import Image
 from utils.images_generator import generate_image_openai
-from dotenv import load_dotenv
 
 from uuid import uuid4
 
@@ -9,9 +8,6 @@ from uuid import uuid4
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-# Set and load environment variables for Langchain and OpenAI
-load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
 
 # Setup for Langchain observability
 unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
