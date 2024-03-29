@@ -2,6 +2,24 @@ import streamlit as st
 from PIL import Image
 from utils.images_generator import generate_image_openai
 
+from uuid import uuid4
+
+# Callbacks for observability
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
+# Set and load environment variables for Langchain and OpenAI
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+
+# Setup for Langchain observability
+unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
+
+
 # Configurer le style de la page avec les paramètres du thème si ce n'est pas déjà fait
 st.set_page_config(
     page_title="Créateur d'Images DALL-E",
