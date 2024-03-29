@@ -9,7 +9,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://www.pathedalle.com/help',
+        'Get Help': 'https://media.beehiiv.com/cdn-cgi/image/fit=scale-down,format=auto,onerror=redirect,quality=80/uploads/asset/file/63e21bf5-75c0-4444-83b0-66e0d98b47d0/628B5B43-B2F2-4948-B419-49B3813B6528.png',
         'About': "# C'est une application pour générer des images avec DALL-E!"
     }
 )
@@ -17,7 +17,7 @@ st.set_page_config(
 # Utilisation des colonnes pour un meilleur layout
 left_col, center_col, right_col = st.columns([1, 2, 1])
 with center_col:
-    st.image(Image.open("static/pathe-logo-clean-PhotoRoom.png"), width=200)
+    st.image(Image.open("static/campus-logo-white.png"), width=200)
     st.markdown("# Dall-e 🎨")
 
 # Zone de texte plus grande pour la description de l'image
