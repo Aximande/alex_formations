@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
 from utils.images_generator import generate_image_openai
+from dotenv import load_dotenv
 
 from uuid import uuid4
 
