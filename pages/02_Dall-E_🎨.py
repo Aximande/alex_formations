@@ -29,7 +29,7 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Repl
 
 # Function to generate an image using Dall-E based on a given description
 def generate_dalle_image(description):
-    llm = OpenAI(temperature=0.9)
+    llm = ChatOpenAI(temperature=0.9)
     prompt = PromptTemplate(
         input_variables=["image_desc"],
         template="Generate a detailed prompt to generate an image based on the following description: {image_desc}",
