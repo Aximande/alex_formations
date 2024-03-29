@@ -29,18 +29,23 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Repl
 
 # Function to generate an image using Dall-E based on a given description
 def generate_dalle_image(description):
-    llm = ChatOpenAI(temperature=0.9)
+    # Truncate the description if it's too long
+    truncated_description = description[:950]  # Adjust as needed based on your template length
+    
+    llm = OpenAI(temperature=0.9)
     prompt = PromptTemplate(
         input_variables=["image_desc"],
         template="Generate a detailed prompt to generate an image based on the following description: {image_desc}",
     )
     chain = LLMChain(llm=llm, prompt=prompt)
     
-    image_url = DallEAPIWrapper().run(chain.run(description))
+    # Ensure to use 'invoke' as per the updated method
+    image_url = DallEAPIWrapper().invoke(chain.invoke(truncated_description))
 
     response = requests.get(image_url)
     img = Image.open(BytesIO(response.content))
     return img
+
 
 # Streamlit UI for input and image display
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:")
