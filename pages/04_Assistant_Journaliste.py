@@ -322,14 +322,9 @@ st.title("Découvrez des assistants pour le quotidien lors de l'écriture d'un �
 
 st.radio(
     "Choisissez votre categorie :",
-    (
-        "Gestion de sinistre",
-        "Assistant sales",
-    ),
+    list(jobs.keys()),
     key="categorie",
 )
-
-# we create a placeholder list to store the jobs in the category
 
 st.radio(
     "Choisissez votre tache :",
