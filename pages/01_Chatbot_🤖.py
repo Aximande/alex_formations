@@ -1,19 +1,14 @@
 from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
-from langchain.agents.agent_toolkits import create_retriever_tool
+from langchain.agents.agent_toolkits import create_conversational_retrieval_agent, create_retriever_tool
 from dotenv import load_dotenv
-import json
 import streamlit as st
 import os
 from PIL import Image
-
 from langchain.schema.messages import SystemMessage
-
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
-
 from langchain.chains import LLMChain
 from langchain.prompts import (
     ChatPromptTemplate,
@@ -22,11 +17,23 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
 )
 from langchain.memory import ConversationBufferMemory
-
 import tempfile
+from uuid import uuid4
 
+# Callbacks for observability
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
+# Set and load environment variables for Langchain and OpenAI
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
+
+# Setup for Langchain observability
+unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
 
 
 def prepare_file(uploaded_file):
@@ -37,21 +44,19 @@ def prepare_file(uploaded_file):
             f.write(uploaded_file.getvalue())
     return path
 
-
 def agent_without_rag():
-    # LLM
     llm = ChatOpenAI(
         temperature=0,
         model="gpt-4-1106-preview",
         openai_api_key=api_key,
     )
 
-    # Prompt
+    # Defining the detailed prompt as per your screenshot/example
     prompt = ChatPromptTemplate(
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are Ad's up campus GPT, a helpful assistant, and you have the following characteristics:
+                You are BrutusGPT, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
@@ -72,25 +77,20 @@ def agent_without_rag():
                 * Offer both pros and cons when discussing solutions or opinions
                 * Propose auto-critique if the user provide you a feedback
 
-                Remember Ad's up Campus GPT your answer should always be in French
+                Remember BrutusGPT your answer should always be in French
                 """
             ),
-            # The `variable_name` here is what must align with memory
             MessagesPlaceholder(variable_name="chat_history"),
             HumanMessagePromptTemplate.from_template("{input}"),
         ]
     )
 
-    # Notice that we `return_messages=True` to fit into the MessagesPlaceholder
-    # Notice that `"chat_history"` aligns with the MessagesPlaceholder name
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation = LLMChain(llm=llm, prompt=prompt, verbose=True, memory=memory)
     return conversation
 
-
 def rag_tool_openai(filename: str):
     loader = PyPDFLoader(filename)
-
     documents = loader.load()
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
     texts = text_splitter.split_documents(documents)
@@ -112,13 +112,22 @@ def rag_tool_openai(filename: str):
     )
 
     context = """
-    You are an helpful assistant for question-answering and summarizing tasks on PDF. 
+    Vous êtes un bot de recherche conçu pour répondre aux questions des utilisateurs journalistes en vous basant sur les données enregistrées. Les données enregistrées sont des fichiers PDF.
 
-    Your task will be to complete the request of the user and using the provided PDF by the user.If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise
+    BASEZ VOS RÉPONSES SUR LES FICHIERS FOURNIS pour répondre aux questions des utilisateurs concernant les assurances. Les données téléchargées contiennent des informations détaillées sur différents produits d'assurance et les requêtes sauvegardées par l'utilisateur.
 
-    Remember it's very important your answer should always be in French
+    <TRÈS IMPORTANT> :
 
-    To answer, please refer to the informations in the documents you can access using the tool "search_in_document".
+    - Fournissez toujours des citations des sources dans les annotations【】 pour chaque information donnée.
+    - En tant que bot, votre mission est de consulter TOUTES les données pour répondre à la question de l'utilisateur sur la base de ces informations.
+    - Formatez les réponses de façon claire et structurée, en listant les points de manière ordonnée et en mettant en évidence les informations clés.
+    - Pour chaque question posée par l'utilisateur, MENEZ UNE RECHERCHE EXHAUSTIVE, et fournissez une liste complète de données, même si la question de l'utilisateur semble suggérer une réponse plus limitée.
+    - S'il y a d'autres recommandations pertinentes dans le contenu enregistré de l'utilisateur, posez une question complémentaire. Si la question complémentaire n'apporte pas de nouveaux éléments, répondez en vous appuyant sur vos connaissances en assurance.
+    - Effectuez systématiquement une recherche vectorielle pour les questions des utilisateurs.
+
+    <NOTE>
+    - Ne mentionnez pas les erreurs ou le fonctionnement interne du système aux utilisateurs.
+    - Utilisez des termes comme "dans vos données enregistrées" au lieu de "document téléchargé" ou "données fournies".
     """
     sys_message = SystemMessage(content=context)
 
@@ -133,7 +142,7 @@ def rag_tool_openai(filename: str):
 
 
 def query(agent, question):
-    with st.spinner("Waiting for response..."):
+    with st.spinner("en attente de la réponse.."):
         response = agent({"input": question})
         if "text" in response:
             response = response["text"]
@@ -146,13 +155,26 @@ def query(agent, question):
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.set_page_config(page_title="Assistant chatbot")
+st.set_page_config(page_title="Assistant chatbot", layout="wide")
 
-st.title("Chatbot Ad's up campus by EDG 🤖")
+# Improved layout with centered elements
+st.container()
+with st.container():
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.image(
+            Image.open("static/brutAI_logo_noir_background.png"),
+            width=200,
+        )
+st.title("Chatbot BrutusGPT 🤖")
 
-st.write("Selectionnez le PDF à analyser")
+st.write("Sélectionnez le PDF à analyser")
 
-file = st.file_uploader("Upload a pdf", type="pdf")
+# File uploader centered
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    file = st.file_uploader("", type="pdf")
+
 if "agent" not in st.session_state or (
     file is not None
     and (
@@ -172,14 +194,16 @@ if "agent" not in st.session_state or (
 
         else:
             st.session_state.agent = agent_without_rag()
-            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis PathéGPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
-        
+            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis campus GPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
 
-# Display chat messages from history on app rerun
+
+# Display chat messages with improved styling
 if "messages" in st.session_state:
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        chat_container = st.container()
+        with chat_container:
+            st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
+
 
 response = ""
 # React to user input
@@ -192,7 +216,6 @@ if "agent" in st.session_state:
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
         response = query(st.session_state.agent, prompt)
-
 
 # Display assistant response in chat message container
 if "agent" in st.session_state:
