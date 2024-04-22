@@ -157,16 +157,14 @@ if "messages" not in st.session_state:
 
 st.set_page_config(page_title="Assistant chatbot", layout="wide")
 
-# Improved layout with centered elements
-st.container()
-with st.container():
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        st.image(
-            Image.open("static/brutAI_logo_noir_background.png"),
-            width=200,
-        )
+# Streamlit UI layout setup
 st.title("Chatbot BrutusGPT 🤖")
+
+# Display the logo at the top of the page
+st.image(
+    Image.open("static/brutAI_logo_noir_background.png"),
+    width=200
+)
 
 st.write("Sélectionnez le PDF à analyser")
 
@@ -194,7 +192,7 @@ if "agent" not in st.session_state or (
 
         else:
             st.session_state.agent = agent_without_rag()
-            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis campus GPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
+            st.session_state.messages.append({"role": "assistant", "content": "Bonjour, je suis BrutusGPT, quelles actions voulez vous effectuer ? Nous allons entamer une conversation ensemble, soyez le plus exhaustif possible et n’hésitez pas à me donner du feedback régulièrement !"})
 
 
 # Display chat messages with improved styling
