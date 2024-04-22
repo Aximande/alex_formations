@@ -1,5 +1,5 @@
 # pip install streamlit langchain langchain-openai beautifulsoup4 python-dotenv chromadb
-
+import sqlite_override
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import WebBaseLoader
