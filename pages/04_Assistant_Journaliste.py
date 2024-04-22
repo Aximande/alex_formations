@@ -309,7 +309,7 @@ if "messages" not in st.session_state:
         "document": "Aucun",
     }
 
-st.set_page_config(page_title="Assistant chatbot")
+st.set_page_config(page_title="Assistant IA à essayer pour journalistes curieux (en beta!)")
 
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
