@@ -313,7 +313,7 @@ st.image(
     Image.open("static/brutAI_logo_noir_background.png"),
     width=300,
 )
-st.title("Découvrez des assistants pour le quotidien lors de l'écriture d'un article ou une recherche documentaire<br>En beta 🤖")
+st.title("Découvrez des assistants pour le quotidien lors de l'écriture d'un article ou une recherche documentaire (beta) 🤖")
 
 st.radio(
     "Choisissez votre categorie :",
