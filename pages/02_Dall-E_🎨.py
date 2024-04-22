@@ -16,7 +16,7 @@ from langchain.prompts import PromptTemplate
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 
 # Assuming the utility functions are in a module named `utils` in the same directory or in your PYTHONPATH
-from utils import generate_image_openai, save_img
+from lib.utils import generate_image_openai, save_img
 
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
