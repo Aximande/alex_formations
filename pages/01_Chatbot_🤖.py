@@ -200,10 +200,10 @@ if "agent" not in st.session_state or (
 # Display chat messages with improved styling
 with col2:
         if "messages" in st.session_state:
-        for message in st.session_state.messages:
-            chat_container = st.container()
-            with chat_container:
-                st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
+            for message in st.session_state.messages:
+                chat_container = st.container()
+                with chat_container:
+                 st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
 
 with col2:
     response = ""
