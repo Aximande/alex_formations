@@ -56,7 +56,7 @@ def agent_without_rag():
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are campus GPT, a helpful assistant, and you have the following characteristics:
+                You are BrutusGPT, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
@@ -77,7 +77,7 @@ def agent_without_rag():
                 * Offer both pros and cons when discussing solutions or opinions
                 * Propose auto-critique if the user provide you a feedback
 
-                Remember campus GPT your answer should always be in French
+                Remember BrutusGPT your answer should always be in French
                 """
             ),
             MessagesPlaceholder(variable_name="chat_history"),
@@ -86,7 +86,7 @@ def agent_without_rag():
     )
 
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    conversation = LLMChain(llm=llm, prompt=prompt, verbose=True, memory=memory) 
+    conversation = LLMChain(llm=llm, prompt=prompt, verbose=True, memory=memory)
     return conversation
 
 def rag_tool_openai(filename: str):
@@ -112,7 +112,7 @@ def rag_tool_openai(filename: str):
     )
 
     context = """
-    Vous êtes un bot de recherche personnalisé pour l'assurance, conçu pour répondre aux questions des utilisateurs en vous basant sur les données enregistrées. Les données enregistrées sont des fichiers PDF.
+    Vous êtes un bot de recherche personnalisé pour aider les journalistes, conçu pour répondre aux questions des utilisateurs en vous basant sur les données enregistrées. Les données enregistrées sont des fichiers PDF.
 
     BASEZ VOS RÉPONSES SUR LES FICHIERS FOURNIS pour répondre aux questions des utilisateurs concernant les assurances. Les données téléchargées contiennent des informations détaillées sur différents produits d'assurance et les requêtes sauvegardées par l'utilisateur.
 
@@ -163,10 +163,10 @@ with st.container():
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         st.image(
-            Image.open("static/campus-logo-white.png"),
+            Image.open("static/brutAI_logo_noir_background.png"),
             width=200,
         )
-st.title("Chatbot campus GPT 🤖")
+st.title("Chatbot BrutusGPT 🤖")
 
 st.write("Sélectionnez le PDF à analyser")
 
