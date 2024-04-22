@@ -348,7 +348,18 @@ else:
 
 update_agent(file)
 
-st.write(templates[st.session_state.categorie][st.session_state.tache])
+# Define a function to display a summary and create an expander to show details
+def display_prompt_summary_and_details(task_name, prompt_details):
+    with st.expander(f"{task_name} - Click to read more"):
+        st.write(prompt_details)
+
+# Get the selected task name and its prompt details
+selected_task = st.session_state.tache
+prompt_details = templates[st.session_state.categorie][selected_task]
+
+# Display the summary and details in an expander
+display_prompt_summary_and_details(selected_task, prompt_details)
+
 
 # Display chat messages from history on app rerun
 if "messages" in st.session_state:
