@@ -168,10 +168,12 @@ st.image(
 
 st.write("Sélectionnez le PDF à analyser")
 
-# File uploader centered
-col1, col2, col3 = st.columns([1,2,1])
+# Pour la section de téléchargement du fichier PDF :
+col1, col2, col3 = st.columns([1,6,1])
+
 with col2:
-    file = st.file_uploader("", type="pdf")
+    st.write("Sélectionnez le PDF à analyser")
+    file = st.file_uploader("", type="pdf", key="file_uploader")
 
 if "agent" not in st.session_state or (
     file is not None
@@ -196,24 +198,25 @@ if "agent" not in st.session_state or (
 
 
 # Display chat messages with improved styling
-if "messages" in st.session_state:
-    for message in st.session_state.messages:
-        chat_container = st.container()
-        with chat_container:
-            st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
+with col2:
+        if "messages" in st.session_state:
+        for message in st.session_state.messages:
+            chat_container = st.container()
+            with chat_container:
+                st.markdown(f"<div class='chat-bubble'><p class='markdown-text'>{message['content']}</p></div>", unsafe_allow_html=True)
 
-
-response = ""
-# React to user input
-if "agent" in st.session_state:
-    if prompt := st.chat_input("Another question ?"):
-        st.session_state.start = True
-        # Display user message in chat message container
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        # Add user message to chat history
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        response = query(st.session_state.agent, prompt)
+with col2:
+    response = ""
+    # React to user input
+    if "agent" in st.session_state:
+        if prompt := st.chat_input("Another question ?"):
+            st.session_state.start = True
+            # Display user message in chat message container
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            # Add user message to chat history
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            response = query(st.session_state.agent, prompt)
 
 # Display assistant response in chat message container
 if "agent" in st.session_state:
