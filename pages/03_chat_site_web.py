@@ -1,6 +1,11 @@
 # pip install streamlit langchain langchain-openai beautifulsoup4 python-dotenv chromadb
 import sqlite_override
 import streamlit as st
+from PIL import Image
+from uuid import uuid4
+import requests
+from io import BytesIO
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -12,7 +17,25 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_openai import OpenAI
 
+# Callbacks for observability
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
+
+
+# Set and load environment variables for Langchain and OpenAI
 load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+
+# Setup for Langchain observability
+unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
+
 
 def get_vectorstore_from_url(url):
     loader = WebBaseLoader(url)
@@ -67,6 +90,12 @@ def generate_questions_from_content(document_chunks):
 # Configuration de la page Streamlit
 st.set_page_config(page_title="Discuter avec des sites web", page_icon="🤖")
 st.title("Discuter avec des sites web 🌐")
+# Display the logo at the top of the page
+st.image(
+    Image.open("static/brutAI_logo_noir_background.png"),
+    width=200
+)
+
 st.markdown("""
 **Bienvenue sur notre assistant search connecté au web**, votre outil privilégié pour intergair avec des sites web et obtenir des réponses à vos questions.
 """)
