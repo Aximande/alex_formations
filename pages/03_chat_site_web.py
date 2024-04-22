@@ -1,5 +1,6 @@
 # pip install streamlit langchain langchain-openai beautifulsoup4 python-dotenv chromadb
 import sqlite_override
+import os
 import streamlit as st
 from PIL import Image
 from uuid import uuid4
@@ -23,7 +24,6 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
-
 
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
