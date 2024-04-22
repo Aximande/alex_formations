@@ -1,7 +1,3 @@
-import sys
-sys.path.append('/Users/ladislas/Desktop/code/brut/alex_formations/utils/')
-
-
 import sqlite_override
 import os
 from dotenv import load_dotenv
@@ -20,7 +16,7 @@ from langchain.prompts import PromptTemplate
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 
 # Assuming the utility functions are in a module named `utils` in the same directory or in your PYTHONPATH
-from image_generator import generate_image_openai, save_img
+from utils.image_generator import generate_image_openai, save_img
 
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
