@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../utils/')
+sys.path.append('/Users/ladislas/Desktop/code/brut/alex_formations/utils/')
+
 
 import sqlite_override
 import os
