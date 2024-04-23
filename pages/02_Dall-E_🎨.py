@@ -1,10 +1,7 @@
-import sqlite_override
 import os
 from dotenv import load_dotenv
 import streamlit as st
 from PIL import Image
-from uuid import uuid4
-import requests
 from io import BytesIO
 from langchain_community.chat_models import ChatOpenAI
 from langchain.callbacks.manager import CallbackManager
@@ -16,13 +13,6 @@ from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
-
-# Setup for Langchain observability
-unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for more security
 
 # Function to generate an image using Dall-E based on a given description and size
 def generate_dalle_image(description, size):
@@ -67,5 +57,4 @@ with st.container():
                         modified_description = f"{input_text}. {feedback}"
                         modified_image = generate_dalle_image(modified_description, selected_size)
                         st.image(modified_image, caption="Modified Image", use_column_width=True)
-                        # Clear the feedback text area after generating the modified image
-                        feedback = st.text_area("Provide feedback or modifications for the image", height=100, placeholder="Enter your feedback or desired modifications here...", value="")
+                        input_text = modified_description
