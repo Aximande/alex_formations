@@ -56,3 +56,14 @@ with st.container():
             with st.spinner("Generating image..."):
                 generated_image = generate_dalle_image(input_text, selected_size)
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
+
+                # Feedback and modification section
+                st.subheader("Feedback and Modification")
+                feedback = st.text_area("Provide feedback or modifications for the image", height=100, placeholder="Enter your feedback or desired modifications here...")
+                modify_button = st.button("Modify Image")
+
+                if modify_button and feedback:
+                    with st.spinner("Modifying image..."):
+                        modified_description = f"{input_text}. {feedback}"
+                        modified_image = generate_dalle_image(modified_description, selected_size)
+                        st.image(modified_image, caption="Modified Image", use_column_width=True)
