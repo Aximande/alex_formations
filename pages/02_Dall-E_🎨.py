@@ -36,9 +36,7 @@ class DallEAPIWrapper:
         self.api_key = api_key if api_key else os.getenv('OPENAI_API_KEY')
 
     def run(self, prompt, size='1024x1024', n=1, quality='standard'):
-        headers = {
-            "Authorization": f"Bearer {self.api_key}"
-        }
+        headers = {"Authorization": f"Bearer {self.api_key}"}
         data = {
             'model': self.model,
             'prompt': prompt,
@@ -48,12 +46,11 @@ class DallEAPIWrapper:
         }
         try:
             response = openai.Image.create(**data, headers=headers)
-            image_url = response['data'][0]['url']
+            image_url = response.data[0]['url']  # Adjusted to correctly parse the response
             return image_url
-        except OpenAIError as e:
+        except Exception as e:  # Change this to catch general exceptions
             print(f"An error occurred: {e}")
             return None
-
 
 # Function to generate an image using Dall-E based on a given description
 def generate_dalle_image(description):
