@@ -52,6 +52,17 @@ with st.container():
                 generated_image = generate_dalle_image(user_prompt, selected_size)
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
 
+                # Feedback section
+                st.subheader("Provide Feedback")
+                feedback = st.text_area("Enter your feedback or additional instructions", height=100, placeholder="Enter your feedback here...")
+                feedback_button = st.button("Generate with Feedback")
+
+                if feedback_button and feedback:
+                    with st.spinner("Generating new image..."):
+                        new_prompt = f"{user_prompt}. {feedback}"
+                        feedback_image = generate_dalle_image(new_prompt, selected_size)
+                        st.image(feedback_image, caption="New Image", use_column_width=True)
+
         st.markdown("---")
         st.subheader("Or Try These Cool Prompts")
         st.write("Need some inspiration? Check out these cool prompts and try generating images from them.")
