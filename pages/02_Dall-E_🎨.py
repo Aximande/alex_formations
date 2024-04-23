@@ -6,7 +6,7 @@ from PIL import Image
 from uuid import uuid4
 import requests
 from io import BytesIO
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
