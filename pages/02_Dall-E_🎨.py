@@ -36,7 +36,12 @@ cool_prompts = [
 
 # Streamlit UI layout setup
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:", layout='wide')
-st.title("DALL-E Image Generator 🎨")
+st.title("DALL-E 3 Image Generator (beta) 🎨")
+# Display the logo at the top of the page
+st.image(
+    Image.open("static/brutAI_logo_noir_background.png"),
+    width=200
+)
 
 with st.container():
     col1, col2, col3 = st.columns([1, 2, 1])
