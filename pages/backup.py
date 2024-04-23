@@ -168,6 +168,7 @@ def prepare_file(uploaded_file):
 
 def agent_without_rag(template):
     # LLM
+
     llm = ChatOpenAI(
         temperature=0,
         model="gpt-4-1106-preview",
@@ -247,12 +248,10 @@ def query(agent, question):
 
 def update_agent(file):
     def conf_changed():
-        if "previous_agent" not in st.session_state:
-            return True
         return (
-            st.session_state.previous_agent.get("category") != st.session_state.categorie
-            or st.session_state.previous_agent.get("job") != st.session_state.tache
-            or st.session_state.previous_agent.get("document") != st.session_state.document
+            st.session_state.previous_agent["category"] != st.session_state.categorie
+            or st.session_state.previous_agent["job"] != st.session_state.tache
+            or st.session_state.previous_agent["document"] != st.session_state.document
         )
 
     def file_changed():
@@ -299,8 +298,6 @@ def update_agent(file):
 # Initialize chat history and previous agent state with default values
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
-if "previous_agent" not in st.session_state:
     st.session_state.previous_agent = {
         "category": "Assistant pour journalistes",  # Default to the first category in your jobs list
         "job": "Mentor",  # Default to the first job within the Assistant category
