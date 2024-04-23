@@ -1,7 +1,6 @@
 import sqlite_override
 import os
 import openai
-from openai.error import OpenAIError
 from dotenv import load_dotenv
 import streamlit as st
 from PIL import Image
@@ -46,11 +45,12 @@ class DallEAPIWrapper:
         }
         try:
             response = openai.Image.create(**data, headers=headers)
-            image_url = response.data[0]['url']  # Adjusted to correctly parse the response
+            image_url = response['data'][0]['url']  # Adjusted to correctly parse the response
             return image_url
-        except Exception as e:  # Change this to catch general exceptions
+        except openai.Error as e:  # Changed to correct exception handling
             print(f"An error occurred: {e}")
             return None
+
 
 # Function to generate an image using Dall-E based on a given description
 def generate_dalle_image(description):
