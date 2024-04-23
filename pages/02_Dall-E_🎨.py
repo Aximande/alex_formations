@@ -30,19 +30,15 @@ def generate_dalle_image(description, size):
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:", layout='wide')
 st.title("DALL-E Image Generator 🎨")
 
-# Initial prompt
-initial_prompt = "An ultra-hyperrealistic photo of a thrilling car chase in a cinematic setting. The scene captures a silver 1967 Ford Mustang Shelby GT500 and a deep green 1969 Pontiac Firebird racing side by side on a misty mountain road. The dense fog adds a mysterious, almost surreal quality, while the wet road reflects the cars' sleek designs and the surrounding dense, dark green pine trees. The intensity and determination on the drivers' faces are visible through their windshields, adding to the drama and realism of the scene."
-
 with st.container():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.write("Initial Prompt:")
-        st.write(initial_prompt)
+        initial_prompt = st.text_area("Describe the image you want to generate", height=150, placeholder="Enter a detailed image description here...")
         size_options = ['1024x1024', '1024x1792', '1792x1024']
         selected_size = st.radio("Select image size", size_options)
         submit_button = st.button("Generate Image")
 
-        if submit_button:
+        if submit_button and initial_prompt:
             with st.spinner("Generating image..."):
                 generated_image = generate_dalle_image(initial_prompt, selected_size)
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
