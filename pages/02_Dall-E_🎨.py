@@ -1,6 +1,7 @@
 import sqlite_override
 import os
 import openai
+from openai.error import OpenAIError
 from dotenv import load_dotenv
 import streamlit as st
 from PIL import Image
