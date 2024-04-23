@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import streamlit as st
 from PIL import Image
 from io import BytesIO
+import requests
 from langchain_community.chat_models import ChatOpenAI
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
