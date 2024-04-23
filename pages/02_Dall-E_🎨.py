@@ -67,3 +67,5 @@ with st.container():
                         modified_description = f"{input_text}. {feedback}"
                         modified_image = generate_dalle_image(modified_description, selected_size)
                         st.image(modified_image, caption="Modified Image", use_column_width=True)
+                        # Clear the feedback text area after generating the modified image
+                        feedback = st.text_area("Provide feedback or modifications for the image", height=100, placeholder="Enter your feedback or desired modifications here...", value="")
