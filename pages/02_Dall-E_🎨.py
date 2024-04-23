@@ -5,8 +5,6 @@ from PIL import Image
 from io import BytesIO
 import requests
 from langchain_community.chat_models import ChatOpenAI
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
@@ -32,30 +30,29 @@ def generate_dalle_image(description, size):
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:", layout='wide')
 st.title("DALL-E Image Generator 🎨")
 
-# Display the logo at the top of the page
-st.image(Image.open("static/brutAI_logo_noir_background.png"), width=200)
+# Initial prompt
+initial_prompt = "An ultra-hyperrealistic photo of a thrilling car chase in a cinematic setting. The scene captures a silver 1967 Ford Mustang Shelby GT500 and a deep green 1969 Pontiac Firebird racing side by side on a misty mountain road. The dense fog adds a mysterious, almost surreal quality, while the wet road reflects the cars' sleek designs and the surrounding dense, dark green pine trees. The intensity and determination on the drivers' faces are visible through their windshields, adding to the drama and realism of the scene."
 
 with st.container():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        input_text = st.text_area("Describe the image you want to generate", height=150, placeholder="Enter a detailed image description here...")
+        st.write("Initial Prompt:")
+        st.write(initial_prompt)
         size_options = ['1024x1024', '1024x1792', '1792x1024']
         selected_size = st.radio("Select image size", size_options)
         submit_button = st.button("Generate Image")
 
-        if submit_button and input_text:
+        if submit_button:
             with st.spinner("Generating image..."):
-                generated_image = generate_dalle_image(input_text, selected_size)
+                generated_image = generate_dalle_image(initial_prompt, selected_size)
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
 
                 # Feedback and modification section
-                st.subheader("Feedback and Modification")
-                feedback = st.text_area("Provide feedback or modifications for the image", height=100, placeholder="Enter your feedback or desired modifications here...")
-                modify_button = st.button("Modify Image")
+                st.subheader("Provide a New Prompt")
+                new_prompt = st.text_area("Enter a new prompt with your desired modifications:", height=150, placeholder="Enter your modified prompt here...")
+                new_submit_button = st.button("Generate New Image")
 
-                if modify_button and feedback:
-                    with st.spinner("Modifying image..."):
-                        modified_description = f"{input_text}. {feedback}"
-                        modified_image = generate_dalle_image(modified_description, selected_size)
-                        st.image(modified_image, caption="Modified Image", use_column_width=True)
-                        input_text = modified_description
+                if new_submit_button and new_prompt:
+                    with st.spinner("Generating new image..."):
+                        new_image = generate_dalle_image(new_prompt, selected_size)
+                        st.image(new_image, caption="New Image", use_column_width=True)
