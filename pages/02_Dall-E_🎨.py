@@ -28,6 +28,31 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
 
 
+class DallEAPIWrapper:
+    def __init__(self, model='dall-e-3', api_key=None):
+        self.model = model
+        self.api_key = api_key if api_key else os.getenv('OPENAI_API_KEY')
+
+    def run(self, prompt, size='1024x1024', n=1, quality='standard'):
+        headers = {
+            "Authorization": f"Bearer {self.api_key}"
+        }
+        data = {
+            'model': self.model,
+            'prompt': prompt,
+            'size': size,
+            'n': n,
+            'quality': quality
+        }
+        try:
+            response = openai.Image.create(**data, headers=headers)
+            image_url = response['data'][0]['url']
+            return image_url
+        except OpenAIError as e:
+            print(f"An error occurred: {e}")
+            return None
+
+
 # Function to generate an image using Dall-E based on a given description
 def generate_dalle_image(description):
     llm = ChatOpenAI(temperature=0.9)
@@ -37,7 +62,7 @@ def generate_dalle_image(description):
     )
     chain = LLMChain(llm=llm, prompt=prompt)
 
-    image_url = DallEAPIWrapper().run(chain.run(description))
+    image_url = DallEAPIWrapper(model='dall-e-3').run(chain.run(description))
     response = requests.get(image_url)
     img = Image.open(BytesIO(response.content))
     return img
