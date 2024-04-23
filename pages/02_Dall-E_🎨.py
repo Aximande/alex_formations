@@ -26,6 +26,14 @@ def generate_dalle_image(description, size):
     img = Image.open(BytesIO(response.content))
     return img
 
+# Predefined cool prompts
+cool_prompts = [
+    "An ultra-hyperrealistic photo of a thrilling car chase in a cinematic setting. The scene captures a silver 1967 Ford Mustang Shelby GT500 and a deep green 1969 Pontiac Firebird racing side by side on a misty mountain road. The dense fog adds a mysterious, almost surreal quality, while the wet road reflects the cars' sleek designs and the surrounding dense, dark green pine trees. The intensity and determination on the drivers' faces are visible through their windshields, adding to the drama and realism of the scene.",
+    "Cinematic Crane Shot, The sun setting over the scenic coastline of Malibu, a luxury convertible cruising along the Pacific Coast Highway, capturing the carefree and glamourous LA lifestyle, as if through the lens of a vintage Panavision camera",
+    "A ransom drop-off in dirty LA backstreets, gritty surroundings, neon lights clash with the stark, moonless night, mimicking the suspense of Tarantino's plots. Captured on lustrous Kodak Vision3 Color Negative Film 500T 5219",
+    # Add more cool prompts here
+]
+
 # Streamlit UI layout setup
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:", layout='wide')
 st.title("DALL-E Image Generator 🎨")
@@ -33,22 +41,36 @@ st.title("DALL-E Image Generator 🎨")
 with st.container():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        initial_prompt = st.text_area("Describe the image you want to generate", height=150, placeholder="Enter a detailed image description here...")
+        st.subheader("Create Your Own Image")
+        user_prompt = st.text_area("Describe the image you want to generate", height=150, placeholder="Enter a detailed image description here...")
         size_options = ['1024x1024', '1024x1792', '1792x1024']
         selected_size = st.radio("Select image size", size_options)
         submit_button = st.button("Generate Image")
 
-        if submit_button and initial_prompt:
+        if submit_button and user_prompt:
             with st.spinner("Generating image..."):
-                generated_image = generate_dalle_image(initial_prompt, selected_size)
+                generated_image = generate_dalle_image(user_prompt, selected_size)
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
 
-                # Feedback and modification section
-                st.subheader("Provide a New Prompt")
-                new_prompt = st.text_area("Enter a new prompt with your desired modifications:", height=150, placeholder="Enter your modified prompt here...")
-                new_submit_button = st.button("Generate New Image")
+                # Feedback section
+                st.subheader("Provide Feedback")
+                feedback = st.text_area("Enter your feedback or additional instructions", height=100, placeholder="Enter your feedback here...")
+                feedback_button = st.button("Generate with Feedback")
 
-                if new_submit_button and new_prompt:
+                if feedback_button and feedback:
                     with st.spinner("Generating new image..."):
-                        new_image = generate_dalle_image(new_prompt, selected_size)
-                        st.image(new_image, caption="New Image", use_column_width=True)
+                        new_prompt = f"{user_prompt}. {feedback}"
+                        feedback_image = generate_dalle_image(new_prompt, selected_size)
+                        st.image(feedback_image, caption="New Image", use_column_width=True)
+
+        st.markdown("---")
+        st.subheader("Or Try These Cool Prompts")
+        st.write("Need some inspiration? Check out these cool prompts and try generating images from them.")
+        for prompt in cool_prompts:
+            with st.expander(prompt[:50] + "..."):
+                st.write(prompt)
+                try_prompt_button = st.button(f"Try Prompt", key=f"try_prompt_{prompt}")
+                if try_prompt_button:
+                    with st.spinner("Generating image..."):
+                        prompt_image = generate_dalle_image(prompt, selected_size)
+                        st.image(prompt_image, caption="Generated Image", use_column_width=True)
