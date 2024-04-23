@@ -36,12 +36,8 @@ cool_prompts = [
 
 # Streamlit UI layout setup
 st.set_page_config(page_title="DALL-E Image Generator", page_icon=":art:", layout='wide')
-st.title("DALL-E 3 Image Generator (beta) 🎨")
-# Display the logo at the top of the page
-st.image(
-    Image.open("static/brutAI_logo_noir_background.png"),
-    width=200
-)
+st.title("DALL-E Image Generator 🎨")
+st.image(Image.open("static/brutAI_logo_noir_background.png"), width=200)
 
 with st.container():
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -58,7 +54,7 @@ with st.container():
                 st.image(generated_image, caption="Generated Image", use_column_width=True)
 
                 # Feedback section
-                st.subheader("Provide Feedback")
+                st.subheader("Request Feedback or Modifications")
                 feedback = st.text_area("Enter your feedback or additional instructions", height=100, placeholder="Enter your feedback here...")
                 feedback_button = st.button("Generate with Feedback")
 
@@ -67,6 +63,19 @@ with st.container():
                         new_prompt = f"{user_prompt}. {feedback}"
                         feedback_image = generate_dalle_image(new_prompt, selected_size)
                         st.image(feedback_image, caption="New Image", use_column_width=True)
+
+                # Request feedback on generated image
+                request_feedback_button = st.button("Request Feedback on Generated Image")
+                if request_feedback_button:
+                    st.write("Please provide your feedback or desired modifications for the generated image.")
+                    image_feedback = st.text_area("Enter your feedback or modifications", height=150)
+                    feedback_submit_button = st.button("Submit Feedback")
+
+                    if feedback_submit_button and image_feedback:
+                        with st.spinner("Generating new image..."):
+                            new_image_prompt = f"Based on the provided image: {image_feedback}"
+                            new_image = generate_dalle_image(new_image_prompt, selected_size)
+                            st.image(new_image, caption="New Image Based on Feedback", use_column_width=True)
 
         st.markdown("---")
         st.subheader("Or Try These Cool Prompts")
