@@ -103,16 +103,11 @@ if button:
         progress_bar.progress(1.0, text="Generating the final SEO-optimized article...")
 
         message = client.messages.create(
-    model="claude-3-opus-20240229",
-    max_tokens=2500,
-    temperature=0,
-    messages=[
-        {
-            "role": "system",
-            "content": prompt
-        }
-    ]
-)
+            model="claude-3-opus-20240229",
+            max_tokens=2500,
+            temperature=0,
+            system=prompt
+        )
 
         # Extract the HTML content from the API response
         html_content = message.content[0].text
