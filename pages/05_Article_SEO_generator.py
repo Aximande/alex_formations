@@ -1,7 +1,6 @@
 import streamlit as st
 import anthropic
 import streamlit.components.v1 as components
-import streamlit_lottie as st_lottie
 from dotenv import load_dotenv
 import os
 from PIL import Image
@@ -71,9 +70,6 @@ if button:
         # Extract the HTML content from the API response
         html_content = message.content[0].text
 
-        # Wrap the HTML content in an iframe with scrolling enabled
-        iframe_html = f"<iframe srcdoc='{html_content}' width='100%' height='600' frameborder='0' scrolling='yes'></iframe>"
-
-        # Display the HTML content in an iframe using st.components.v1.html
+        # Display the HTML content in an iframe using st.components.v1.iframe
         st.header("Generated SEO Article")
-        components.html(iframe_html, height=600)
+        components.iframe(html_content, height=600, scrolling=True)
