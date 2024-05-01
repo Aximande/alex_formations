@@ -120,6 +120,6 @@ if button:
         # Display the HTML content if it's not empty
         if html_content.strip():
             st.header("Generated SEO Article")
-            components.iframe(html_content, height=600, scrolling=True)
+            components.html(html_content, height=600, scrolling=True)
         else:
             st.warning("No HTML content was generated.")
