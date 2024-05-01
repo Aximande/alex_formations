@@ -5,7 +5,8 @@ st.image(
     Image.open("static/brutAI_logo_noir_background.png"),
     width=300,
 )
-st.title("Générez des articles SEO optimisés à partir de Transcript de vidéo")
+
+st.title("SEO Article Generator from Transcripts")
 
 transcript = st.text_area("Enter your video transcript:", height=200)
 target_languages = st.multiselect("Select target languages for translation (optional):", ["French", "Spanish", "German"])
@@ -14,7 +15,13 @@ feedback = st.text_input("Provide feedback on the generated article (optional):"
 button = st.button("Generate SEO Article")
 
 if button:
-    client = anthropic.Anthropic(api_key="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")
+    api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    if api_key:
+        client = anthropic.Anthropic(api_key=api_key)
+        # Rest of your code
+    else:
+        st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY secret in your Streamlit app.")
+
 
     message = client.messages.create(
         model="claude-3-opus-20240229",
