@@ -107,6 +107,7 @@ if button:
             max_tokens=2500,
             temperature=0,
             system=prompt,
+            messages=[]  # Add an empty messages list
         )
 
         # Extract the HTML content from the API response
