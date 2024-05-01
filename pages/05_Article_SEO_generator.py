@@ -19,7 +19,7 @@ st.title("SEO Article Generator from Transcripts")
 
 transcript = st.text_area("Enter your video transcript:", height=200)
 target_languages = st.multiselect("Select target languages for translation (optional):", ["French", "Spanish", "German"])
-feedback = st.text_input("Provide feedback on the generated article (optional):")
+
 
 button = st.button("Generate SEO Article")
 
@@ -46,7 +46,7 @@ if button:
 
         message = client.messages.create(
             model="claude-3-opus-20240229",
-            max_tokens=2500,
+            max_tokens=4000,
             temperature=0,
             system=f"""
             ... (system prompt omitted for brevity) ...
@@ -61,7 +61,8 @@ if button:
 
                     Target languages: {', '.join(target_languages) if target_languages else 'None'}
 
-                    Feedback: {feedback}
+                    Final SEO-optimized article:
+
                     """
                 }
             ]
