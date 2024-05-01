@@ -1,5 +1,9 @@
 import streamlit as st
 import anthropic
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load environment variables from the .env file
 
 st.image(
     Image.open("static/brutAI_logo_noir_background.png"),
@@ -15,13 +19,12 @@ feedback = st.text_input("Provide feedback on the generated article (optional):"
 button = st.button("Generate SEO Article")
 
 if button:
-    api_key = st.secrets.get("ANTHROPIC_API_KEY")
+    api_key = os.getenv("ANTHROPIC_API_KEY")
     if api_key:
         client = anthropic.Anthropic(api_key=api_key)
         # Rest of your code
     else:
-        st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY secret in your Streamlit app.")
-
+        st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
 
     message = client.messages.create(
         model="claude-3-opus-20240229",
