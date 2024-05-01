@@ -113,6 +113,13 @@ if button:
         # Extract the HTML content from the API response
         html_content = message.content[0].text
 
-        # Display the HTML content in an iframe using st.components.v1.iframe
-        st.header("Generated SEO Article")
-        components.iframe(html_content, height=600, scrolling=True)
+        # Display the raw generated content
+        st.subheader("Raw Generated Content")
+        st.write(html_content)
+
+        # Display the HTML content if it's not empty
+        if html_content.strip():
+            st.header("Generated SEO Article")
+            components.iframe(html_content, height=600, scrolling=True)
+        else:
+            st.warning("No HTML content was generated.")
