@@ -1,7 +1,9 @@
+import sqlite_override
 import streamlit as st
 import anthropic
 from dotenv import load_dotenv
 import os
+from PIL import Image
 
 load_dotenv()  # Load environment variables from the .env file
 
