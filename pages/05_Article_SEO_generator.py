@@ -106,8 +106,9 @@ if button:
             model="claude-3-opus-20240229",
             max_tokens=2500,
             temperature=0,
-            system=prompt
-        )
+            system=prompt,
+            messages=[]
+)
 
         # Extract the HTML content from the API response
         html_content = message.content[0].text
