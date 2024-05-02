@@ -32,7 +32,7 @@ if button:
         progress_text = "Generating SEO Article..."
         progress_bar = st.progress(0, text=progress_text)
 
-        api_key = os.getenv("ANTHROPIC_API_KEY")
+        api_key = st.secrets["ANTHROPIC_API_KEY"]
         if api_key:
             client = anthropic.Anthropic(api_key=api_key)
         else:

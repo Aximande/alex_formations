@@ -7,7 +7,8 @@ import streamlit.components.v1 as components
 
 # Load environment variables
 load_dotenv()
-api_key = os.getenv('ANTHROPIC_API_KEY')
+#api_key = os.getenv('ANTHROPIC_API_KEY')
+api_key = st.secrets["ANTHROPIC_API_KEY"]
 
 if not api_key:
     st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
