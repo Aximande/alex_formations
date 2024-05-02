@@ -7,13 +7,13 @@ from PIL import Image
 
 load_dotenv()  # Load environment variables from the .env file
 
-with open("style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+#with open("style.css") as f:
+#    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-st.image(
-    Image.open("static/brutAI_logo_noir_background.png"),
-    width=300,
-)
+#st.image(
+#    Image.open("static/brutAI_logo_noir_background.png"),
+#    width=300,
+#)
 
 st.title("SEO Article Generator from Transcripts")
 

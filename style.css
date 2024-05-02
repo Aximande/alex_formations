@@ -11,3 +11,24 @@ div.row-widget.stRadio>div[role="radiogroup"]>label[data-baseweb="radio"] {
   padding-bottom: 15px;
   margin: 4px;
 }
+
+
+.html-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 5px;
+  color: #333333;
+}
+
+.html-content h1,
+.html-content h2,
+.html-content h3,
+.html-content h4,
+.html-content h5,
+.html-content h6 {
+  color: #2E86C1;
+}
+
+.html-content a {
+  color: #2E86C1;
+}
