@@ -1,4 +1,3 @@
-#api_key = "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"
 
 import streamlit as st
 import anthropic
