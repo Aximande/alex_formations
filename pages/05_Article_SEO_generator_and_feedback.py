@@ -142,6 +142,8 @@ def main():
     with open("style.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+    st.image("static/brutAI_logo_noir_background.png", width=300)
+
     st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
     transcript = st.text_area("Enter your video transcript:", height=200)
     target_languages = st.multiselect("Select target languages for translation (optional):", ["French", "Spanish", "German", "Hindi", "Afrikaans"])
