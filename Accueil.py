@@ -18,9 +18,11 @@ st.write("2. Chattez avec Brutus, l'assistant GPT-4 pouvant interagir avec un PD
 st.write("3. Créez des images avec Dall-E 3 🎨")
 st.write("4. Chattez acvec n'importe quel site web facilement ")
 st.write("5. Découvrez des petits assistants, utiles pour certaines tâches très précises ")
+st.write("6. Découvrez notre SEO article Maker, capable de créer un article SEO parfait à partir d'un transcript d'une vidéo")
 st.write("Vous pouvez accéder à ces pages via le menu de gauche.")
 st.write("Pour commencer, vous pouvez vous rendre sur la page 1. Chatbot avec Brutus.")
 
 st.write("Ce site a pour vocation à s'enrichir et grandir avec le temps.")
 
-st.write("A vos prompts ! !")
+st.write("A vos prompts !!")
+st.write("- l'équipe Data/IA de Brut")
