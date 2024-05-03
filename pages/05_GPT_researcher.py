@@ -3,24 +3,26 @@ from gpt_researcher import GPTResearcher
 import asyncio
 import streamlit.components.v1 as components
 
-# Define the asynchronous function as before
 async def get_report(query: str, report_type: str) -> str:
     researcher = GPTResearcher(query=query, report_type=report_type)
     await researcher.conduct_research()
     report = await researcher.write_report()
     return report
 
-def load_report():
-    # Run the asyncio task in the existing event loop
-    loop = asyncio.get_event_loop()
-    if not loop.is_running():
-        # This should not happen in a normal Streamlit environment
-        # but added here for robustness in different setups
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    future = asyncio.ensure_future(get_report(st.session_state.query, st.session_state.report_type))
-    report = loop.run_until_complete(future)
-    st.session_state.report = report
+def run_async_report(query, report_type):
+    if 'report_future' not in st.session_state or st.session_state.report_future.done():
+        st.session_state.report_future = asyncio.ensure_future(get_report(query, report_type))
+
+def check_report():
+    if 'report_future' in st.session_state:
+        if st.session_state.report_future.done():
+            # If the report is done, display it
+            report = st.session_state.report_future.result()
+            components.html(report, height=500, scrolling=True)
+        else:
+            # If the report is not done, show a spinner and re-run the script
+            with st.spinner("Generating report..."):
+                st.experimental_rerun()
 
 def main():
     st.title("GPT Researcher Integration")
@@ -34,17 +36,8 @@ def main():
     # Button to trigger report generation
     if st.button("Generate Report"):
         if query:
-            # Store query and report type in session state
-            st.session_state.query = query
-            st.session_state.report_type = report_type
-
-            # Use spinner to indicate loading and call load report function
-            with st.spinner("Generating report..."):
-                load_report()
-
-            # Display the report
-            if "report" in st.session_state:
-                components.html(st.session_state.report, height=500, scrolling=True)
+            run_async_report(query, report_type)
+            check_report()
         else:
             st.warning("Please enter a research query.")
 
