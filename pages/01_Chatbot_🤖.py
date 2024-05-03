@@ -1,3 +1,4 @@
+import sqlite_override
 from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_toolkits import create_conversational_retrieval_agent, create_retriever_tool
 from dotenv import load_dotenv
@@ -24,16 +25,12 @@ from uuid import uuid4
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
+######################################################
+
+
 # Set and load environment variables for Langchain and OpenAI
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
-
-# Setup for Langchain observability
-unique_id = uuid4().hex[0:8]  # Generating a unique ID for this session
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = f"Project - {unique_id}"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__5d5b2266e1ac446a85974cd1db8349c5"  # Replace with your actual API key - to change for mor esecurity
 
 
 def prepare_file(uploaded_file):
@@ -56,7 +53,7 @@ def agent_without_rag():
         messages=[
             SystemMessagePromptTemplate.from_template(
                 """
-                You are BrutusGPT, a helpful assistant, and you have the following characteristics:
+                You are NEO, a helpful assistant, and you have the following characteristics:
                 * Speak in French
                 * Always cut pre-text and post-text
                 * Provide accurate and factual answers
@@ -77,7 +74,7 @@ def agent_without_rag():
                 * Offer both pros and cons when discussing solutions or opinions
                 * Propose auto-critique if the user provide you a feedback
 
-                Remember BrutusGPT your answer should always be in French
+                Remember NEO your answer should always be in French
                 """
             ),
             MessagesPlaceholder(variable_name="chat_history"),
@@ -163,10 +160,10 @@ with st.container():
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         st.image(
-            Image.open("static/brutAI_logo_noir_background.png"),
+            Image.open("static/matrix-logo.png"),
             width=200,
         )
-st.title("Chatbot BrutusGPT 🤖")
+st.title("Chatbot Néo 🤖")
 
 st.write("Sélectionnez le PDF à analyser")
 
