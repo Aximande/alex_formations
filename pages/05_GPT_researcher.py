@@ -11,6 +11,8 @@ async def get_report(query: str, report_type: str) -> str:
 
 def run_async_report(query, report_type):
     if 'report_future' not in st.session_state or st.session_state.report_future.done():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         st.session_state.report_future = asyncio.ensure_future(get_report(query, report_type))
 
 def check_report():
