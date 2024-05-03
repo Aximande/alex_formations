@@ -86,4 +86,3 @@ opencv-python-headless
 scikit-image
 pysqlite3-binary
 gpt_researcher
-pdfkit

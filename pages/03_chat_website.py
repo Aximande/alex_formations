@@ -1,5 +1,5 @@
 # pip install streamlit langchain langchain-openai beautifulsoup4 python-dotenv chromadb
-import alex_formations.sqlite_override as sqlite_override
+import sqlite_override
 import os
 import streamlit as st
 from PIL import Image
