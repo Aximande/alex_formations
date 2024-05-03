@@ -22,7 +22,7 @@ def run_async_report(query, report_type):
     if 'report_future' not in st.session_state or st.session_state.report_future.done():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        st.session_state.report_future = asyncio.ensure_future(get_report(query, report_type))
+        st.session_state.report_future = asyncio.ensure_future(asyncio.shield(get_report(query, report_type)))  # Use asyncio.shield
 
 def check_report():
     if 'report_future' in st.session_state:
@@ -35,7 +35,7 @@ def check_report():
                 st.error("An error occurred while displaying the report.")
         else:
             with st.spinner("Generating report..."):
-                st.rerun()  # Change from st.experimental_rerun to st.rerun
+                st.rerun()
 
 def main():
     st.title("GPT Researcher Integration")
