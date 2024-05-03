@@ -4,8 +4,9 @@ import asyncio
 import streamlit.components.v1 as components
 
 async def get_report(query: str, report_type: str) -> str:
-    researcher = GPTResearcher(query, report_type)
-    report = await researcher.run()
+    researcher = GPTResearcher(query=query, report_type=report_type)
+    await researcher.conduct_research()
+    report = await researcher.write_report()
     return report
 
 def main():
