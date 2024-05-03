@@ -1,10 +1,10 @@
 import streamlit as st
-import gpt_researcher
+from gpt_researcher import GPTResearcher
 import asyncio
 import streamlit.components.v1 as components
 
 async def generate_report(query):
-    researcher = gpt_researcher.GPTResearcher(query=query, config_path=None)
+    researcher = GPTResearcher(query=query, config_path=None)
     await researcher.conduct_research()
     report = await researcher.write_report()
     return report
