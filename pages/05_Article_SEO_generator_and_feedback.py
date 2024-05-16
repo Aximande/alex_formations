@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import base64
 import streamlit.components.v1 as components
+import pyperclip
 #from data_common.connectors.sm_connector import SecretManager
 
 
@@ -29,8 +30,7 @@ def download_html(html_content, file_name):
 
 def copy_to_clipboard(text):
     if text:
-        clipboard = st.session_state["clipboard"]
-        clipboard.text(text)
+        pyperclip.copy(text)
         st.success("HTML code copied to clipboard!")
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
