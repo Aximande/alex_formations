@@ -1,20 +1,24 @@
+import sqlite_override
 import streamlit as st
 import anthropic
 from dotenv import load_dotenv
 import os
 import base64
 import streamlit.components.v1 as components
+from data_common.connectors.sm_connector import SecretManager
+
 
 # Load environment variables
 load_dotenv()
-#api_key = os.getenv('ANTHROPIC_API_KEY')
-api_key = st.secrets["ANTHROPIC_API_KEY"]
+
+# Initialize the API client
+api_key = os.getenv("ANTHROPIC_API_KEY")
+######################################################
 
 if not api_key:
     st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
     st.stop()
 
-# Initialize the API client
 client = anthropic.Anthropic(api_key=api_key)
 
 def download_html(html_content, file_name):
