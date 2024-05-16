@@ -173,7 +173,7 @@ def main():
     st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
     if "clipboard" not in st.session_state:
-        st.session_state["clipboard"] = st.experimental_memo(lambda: None, persist=False)
+        st.session_state["clipboard"] = None
 
     with open("style.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -192,9 +192,12 @@ def main():
             st.error("Please enter a video transcript.")
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
-        initial_article = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
+        initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
         st.session_state['initial_article'] = initial_article
+        st.session_state['raw_output'] = raw_output
         st.session_state['target_languages'] = target_languages
+        st.session_state['existing_h1'] = existing_h1
+        st.session_state['existing_header'] = existing_header
         st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
         components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
         st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
@@ -211,7 +214,10 @@ def main():
                 revised_article = generate_revised_article(
                     st.session_state['initial_article'],
                     user_feedback,
-                    st.session_state['target_languages']
+                    st.session_state['raw_output'],
+                    st.session_state['target_languages'],
+                    st.session_state['existing_h1'],
+                    st.session_state['existing_header']
                 )
                 st.session_state['revised_article'] = revised_article
 
