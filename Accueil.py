@@ -10,7 +10,7 @@ with cent_co:
         width=200,
     )
 
-st.title("Welcome Lunch & Learn BrutAI 🤖")
+st.title("BOB Welcome Lunch & Learn BrutAI 🤖")
 st.write("Bienvenu(e)s sur notre application de démo pour ces lunch and learn dédiés à l'IA générative !")
 st.write("Cette application est divisée en différentes pages, chacune illustrant un cas d'application particulier de l'IA générative grâce à des chatGPT (GPT-4) personnalisées pour les besoins de notre session :")
 st.write("1. Accueil")
