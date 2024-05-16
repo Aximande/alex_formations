@@ -49,3 +49,16 @@ div.row-widget.stRadio>div[role="radiogroup"]>label[data-baseweb="radio"] {
   border-top: 1px solid #ccc;
   margin: 20px 0;
 }
+
+.copy-button {
+  background-color: #2E86C1;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.copy-button:hover {
+  background-color: #1B4F72;
+}

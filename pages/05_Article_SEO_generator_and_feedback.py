@@ -27,6 +27,12 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
+def copy_to_clipboard(text):
+    if text:
+        clipboard = st.session_state["clipboard"]
+        clipboard.text(text)
+        st.success("HTML code copied to clipboard!")
+
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
     system_processing = """
@@ -166,7 +172,9 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
 def main():
     st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
-    # Load CSS file
+    if "clipboard" not in st.session_state:
+        st.session_state["clipboard"] = st.experimental_memo(lambda: None, persist=False)
+
     with open("style.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
@@ -184,25 +192,13 @@ def main():
             st.error("Please enter a video transcript.")
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
-        initial_article, initial_request = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
+        initial_article = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
         st.session_state['initial_article'] = initial_article
-        st.session_state['initial_request'] = initial_request
         st.session_state['target_languages'] = target_languages
-        st.session_state['existing_h1'] = existing_h1
-        st.session_state['existing_header'] = existing_header
         st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
         components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
         st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
-    else:
-        initial_article, initial_request = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
-        st.session_state['initial_article'] = initial_article
-        st.session_state['initial_request'] = initial_request
-        st.session_state['target_languages'] = target_languages
-        st.session_state['existing_h1'] = existing_h1
-        st.session_state['existing_header'] = existing_header
-        st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-        components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
-        st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+        st.button("Copy Initial HTML Code", on_click=copy_to_clipboard, args=(initial_article,))
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -211,14 +207,11 @@ def main():
         user_feedback = st.text_area("Enter your feedback (optional):", height=200)
 
         if st.button("Submit Feedback"):
-            if 'initial_request' in st.session_state and user_feedback:
+            if user_feedback:
                 revised_article = generate_revised_article(
                     st.session_state['initial_article'],
                     user_feedback,
-                    st.session_state['initial_request'],
-                    st.session_state['target_languages'],
-                    st.session_state['existing_h1'],
-                    st.session_state['existing_header']
+                    st.session_state['target_languages']
                 )
                 st.session_state['revised_article'] = revised_article
 
@@ -229,9 +222,11 @@ def main():
                 with col2:
                     st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
                     components.html(f'<div class="html-content">{st.session_state["revised_article"]}</div>', height=500, scrolling=True)
+                    st.button("Copy Revised HTML Code", on_click=copy_to_clipboard, args=(revised_article,))
 
                 st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
+
 if __name__ == "__main__":
     main()
