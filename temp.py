@@ -27,7 +27,7 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
-def generate_seo_article(transcript, target_languages):
+def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
     system_processing = """
         1. Preprocess the transcript:
@@ -104,7 +104,7 @@ Existing H1 for this article
 {existing_header}
 
 Initial request:
-{raw_output}
+<transcript>{raw_output}</transcript>
 
 Output: seo_optimized_article (HTML string) in the target languages: {', '.join(target_languages)} :
 """
@@ -162,35 +162,28 @@ def main():
 
     st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
     transcript = st.text_area("Enter your video transcript:", height=200)
-    existing_h1 = st.text_input("Enter your current H1:")
-    existing_header = st.text_input("Enter your current header:")
-    target_languages = st.multiselect("Select target languages for translation (optional):",
-                                      ["French", "Spanish", "German", "Hindi", "Afrikaans"])
+    target_languages = st.multiselect("Select target languages for translation (optional):", ["French", "Spanish", "German", "Hindi", "Afrikaans"])
 
     if st.button("Generate SEO Article"):
         if not transcript:
             st.error("Please enter a video transcript.")
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
-        initial_article, initial_request = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
-        st.session_state['initial_article'] = initial_article
-        st.session_state['initial_request'] = initial_request
-        st.session_state['target_languages'] = target_languages
-        st.session_state['existing_h1'] = existing_h1
-        st.session_state['existing_header'] = existing_header
-        st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-        components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
-        st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
-    else:
-        initial_article, initial_request = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
-        st.session_state['initial_article'] = initial_article
-        st.session_state['initial_request'] = initial_request
-        st.session_state['target_languages'] = target_languages
-        st.session_state['existing_h1'] = existing_h1
-        st.session_state['existing_header'] = existing_header
-        st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-        components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
-        st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+            initial_article, initial_request = generate_seo_article(transcript, target_languages)
+            st.session_state['initial_article'] = initial_article
+            st.session_state['initial_request'] = initial_request
+            st.session_state['target_languages'] = target_languages
+            st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
+            components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
+            st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+        else:
+            initial_article, initial_request = generate_seo_article(transcript, target_languages)
+            st.session_state['initial_article'] = initial_article
+            st.session_state['initial_request'] = initial_request
+            st.session_state['target_languages'] = target_languages
+            st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
+            components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
+            st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -201,23 +194,54 @@ def main():
         if st.button("Submit Feedback"):
             if 'initial_request' in st.session_state and user_feedback:
                 revised_article = generate_revised_article(
-                    st.session_state['initial_article'],
-                    user_feedback,
-                    st.session_state['initial_request'],
-                    st.session_state['target_languages']
+                    st.session_state['initial_article'], user_feedback, st.session_state['initial_request'], st.session_state['target_languages']
                 )
                 st.session_state['revised_article'] = revised_article
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-                    components.html(f'<div class="html-content">{st.session_state["initial_article"]}</div>', height=500, scrolling=True)
-                with col2:
-                    st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
-                    components.html(f'<div class="html-content">{st.session_state["revised_article"]}</div>', height=500, scrolling=True)
-
+                st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
+                components.html(f'<div class="html-content">{revised_article}</div>', height=500, scrolling=True)
                 st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
+
 if __name__ == "__main__":
     main()
+
+
+-------
+
+
+
+div.row-widget.stRadio>div {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+div.row-widget.stRadio>div[role="radiogroup"]>label[data-baseweb="radio"] {
+  background-color: #323439;
+  padding-right: 30px;
+  padding-left: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  margin: 4px;
+}
+
+
+.html-content {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 5px;
+  color: #333333;
+}
+
+.html-content h1,
+.html-content h2,
+.html-content h3,
+.html-content h4,
+.html-content h5,
+.html-content h6 {
+  color: #2E86C1;
+}
+
+.html-content a {
+  color: #2E86C1;
+}
