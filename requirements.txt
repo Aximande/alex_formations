@@ -85,4 +85,3 @@ zipp==3.17.0
 opencv-python-headless
 scikit-image
 pysqlite3-binary
-pyperclip

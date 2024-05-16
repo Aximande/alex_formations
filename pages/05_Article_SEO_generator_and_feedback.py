@@ -1,20 +1,15 @@
-import sqlite_override
 import streamlit as st
 import anthropic
 from dotenv import load_dotenv
 import os
 import base64
 import streamlit.components.v1 as components
-import pyperclip
-#from data_common.connectors.sm_connector import SecretManager
-
 
 # Load environment variables
 load_dotenv()
 
 # Initialize the API client
 api_key = os.getenv("ANTHROPIC_API_KEY")
-######################################################
 
 if not api_key:
     st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
@@ -28,14 +23,9 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
-def copy_to_clipboard(text):
-    if text:
-        pyperclip.copy(text)
-        st.success("HTML code copied to clipboard!")
-
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
-    system_processing = """
+    system_processing = f"""
         1. Preprocess the transcript:
            - Extract the transcript text from the <transcript> tags.
            - Remove speaker names/labels (e.g., Valentin:, BRUT:).
@@ -50,6 +40,16 @@ def generate_seo_article(transcript, target_languages, existing_h1, existing_hea
            - Identify question-answer pairs based on typical question words/phrases.
            - Extract key phrases using an unsupervised keyphrase extraction model.
            - Output: main_topic (string), subtopics (list of strings), qa_pairs (list of tuples), key_phrases (list of strings).
+
+        3. Generate alternative H1 and header suggestions:
+           - Based on the main topic, subtopics, and key phrases, generate 2-3 alternative H1 suggestions.
+           - Ensure the suggested H1s are engaging, concise, and capture the main theme of the transcript.
+           - Based on the main topic and the existing header, generate 2-3 alternative header suggestions.
+           - Ensure the suggested headers provide a compelling introduction to the article and align with the H1.
+           - Output: alt_h1_suggestions (list of strings), alt_header_suggestions (list of strings).
+
+        Existing H1: {existing_h1}
+        Existing Header: {existing_header}
     """
 
     message = client.messages.create(
@@ -172,9 +172,6 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
 def main():
     st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
-    if "clipboard" not in st.session_state:
-        st.session_state["clipboard"] = None
-
     with open("style.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
@@ -198,10 +195,11 @@ def main():
         st.session_state['target_languages'] = target_languages
         st.session_state['existing_h1'] = existing_h1
         st.session_state['existing_header'] = existing_header
+
         st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
+        st.expander("View Raw HTML").code(initial_article)
         components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
         st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
-        st.button("Copy Initial HTML Code", on_click=copy_to_clipboard, args=(initial_article,))
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -227,10 +225,9 @@ def main():
                     components.html(f'<div class="html-content">{st.session_state["initial_article"]}</div>', height=500, scrolling=True)
                 with col2:
                     st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
-                    components.html(f'<div class="html-content">{st.session_state["revised_article"]}</div>', height=500, scrolling=True)
-                    st.button("Copy Revised HTML Code", on_click=copy_to_clipboard, args=(revised_article,))
-
-                st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
+                    st.expander("View Raw HTML").code(revised_article)
+                    components.html(f'<div class="html-content">{revised_article}</div>', height=500, scrolling=True)
+                    st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
 
