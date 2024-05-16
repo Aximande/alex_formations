@@ -3,7 +3,9 @@ import anthropic
 from dotenv import load_dotenv
 import os
 import base64
+import asyncio
 import streamlit.components.v1 as components
+from gpt_researcher import GPTResearcher
 
 # Load environment variables
 load_dotenv()
@@ -169,67 +171,164 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
     revised_html_content = message.content[0].text
     return revised_html_content
 
-def main():
-    st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
+def fact_check_article(article_content, transcript):
+    fact_check_prompt = f"""
+You will be acting as a fact-checking assistant to ensure that an SEO article generated from a video transcript is truthful and does not contain any hallucinations or inventions not supported by the original transcript.
 
-    with open("style.css") as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+Here is the SEO article:
 
-    st.image("static/brutAI_logo_noir_background.png", width=300)
+<seo_article>
+{article_content}
+</seo_article>
 
-    st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
-    transcript = st.text_area("Enter your video transcript:", height=200)
-    existing_h1 = st.text_input("Enter your current H1:")
-    existing_header = st.text_input("Enter your current header:")
-    target_languages = st.multiselect("Select target languages for translation (optional):",
-                                      ["French", "Spanish", "German", "Hindi", "Afrikaans"])
+And here is the full video transcript the article should be based on:
 
-    if st.button("Generate SEO Article"):
-        if not transcript:
-            st.error("Please enter a video transcript.")
-        elif len(transcript) < 100:
-            st.warning("The transcript is quite short. The generated article may not be comprehensive.")
-        initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
-        st.session_state['initial_article'] = initial_article
-        st.session_state['raw_output'] = raw_output
-        st.session_state['target_languages'] = target_languages
-        st.session_state['existing_h1'] = existing_h1
-        st.session_state['existing_header'] = existing_header
+<transcript>
+{transcript}
+</transcript>
 
-        st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-        st.expander("View Raw HTML").code(initial_article)
-        components.html(f'<div class="html-content">{initial_article}</div>', height=500, scrolling=True)
-        st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+Please carefully compare the SEO article to the provided transcript. Your task is to identify any claims, statements or details in the article that are not directly supported by the transcript. These are considered "hallucinations" or "inventions".
 
-    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+<scratchpad>
+If you find any hallucinations or invented details in the SEO article, write them down here. For each one, identify the key assumption(s) behind the hallucinated claim. Keep these brief and to the point.
+</scratchpad>
 
-    if 'initial_article' in st.session_state:
-        st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
-        user_feedback = st.text_area("Enter your feedback (optional):", height=200)
+If no hallucinations or inventions are found, simply output:
 
-        if st.button("Submit Feedback"):
-            if user_feedback:
-                revised_article = generate_revised_article(
-                    st.session_state['initial_article'],
-                    user_feedback,
-                    st.session_state['raw_output'],
-                    st.session_state['target_languages'],
-                    st.session_state['existing_h1'],
-                    st.session_state['existing_header']
-                )
-                st.session_state['revised_article'] = revised_article
+<result>
+The SEO article appears to be fully supported by the video transcript. No hallucinations or inventions detected.
+</result>
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-                    components.html(f'<div class="html-content">{st.session_state["initial_article"]}</div>', height=500, scrolling=True)
-                with col2:
-                    st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
-                    st.expander("View Raw HTML").code(revised_article)
-                    components.html(f'<div class="html-content">{revised_article}</div>', height=500, scrolling=True)
-                    st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
+However, if you do identify hallucinations or inventions, your next step is to generate a set of fact-checkable questions that challenge the key assumptions you identified. These questions should be used to search for evidence that either confirms or refutes the hallucinated claims, using the video transcript as the sole source of ground truth.
+
+Frame your questions to explore the basic existence or accuracy of the hallucinated details. Do not address or refer to the user, as your questions will only be used for background searches, not shown directly.
+
+Use varied wording and sentence structures for your questions to maximize the scope of the searches. The goal is to cast a wide net to find any relevant information in the transcript that relates to the hallucinated claims.
+
+After listing your questions, provide a final recommendation on whether the SEO article needs to be revised to align with the transcript. Output your full results like this:
+
+<result>
+<hallucinations>
+1. [Hallucinated claim 1]
+2. [Hallucinated claim 2]
+3. [Hallucinated claim 3]
+</hallucinations>
+
+<fact_check_questions>
+1. [Question challenging assumption behind hallucination 1]
+2. [Question challenging assumption behind hallucination 1 - alternate phrasing]
+3. [Question challenging assumption behind hallucination 2]
+4. [Question challenging assumption behind hallucination 2 - alternate phrasing]
+5. [Question challenging assumption behind hallucination 3]
+6. [Question challenging assumption behind hallucination 3 - alternate phrasing]
+</fact_check_questions>
+
+<recommendation>
+Based on the hallucinations identified, the SEO article should be revised to remove or modify any claims not directly supported by the video transcript. The fact check questions above should be used to verify details before including them in the final article.
+</recommendation>
+</result>
+
+Remember, the video transcript is the only source you should use for fact-checking. Do not make assumptions or rely on any external knowledge. If you're unsure whether something in the article is supported by the transcript, err on the side of caution and flag it for further checking.
+
+Provide your full analysis and fact check questions in a single response. No need to double-check your work or engage in any additional dialogue. Just follow the instructions to the best of your abilities based on the information provided.
+"""
+
+    message = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=4096,
+        temperature=0,
+        system="You are a fact-checking assistant.",
+        messages=[{"role": "user", "content": fact_check_prompt}]
+    )
+
+    fact_check_results = message.content[0].text
+    return fact_check_results
+
+async def generate_faq(article_content):
+    query = f"FAQs related to the topic: {article_content}"
+    researcher = GPTResearcher(query=query, report_type="faq")
+
+    # Conduct research on the given query
+    research_result = await researcher.conduct_research()
+
+    # Write the FAQ
+    faq_content = await researcher.write_report()
+    return faq_content
+
+st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
+
+st.image("brutAI_logo_noir_background.png", width=300)
+
+st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
+transcript = st.text_area("Enter your video transcript:", height=200)
+existing_h1 = st.text_input("Enter your current H1:")
+existing_header = st.text_input("Enter your current header:")
+target_languages = st.multiselect("Select target languages for translation (optional):",
+                                    ["French", "Spanish", "German", "Hindi", "Afrikaans"],
+                                    default="French")
+
+if st.button("Generate SEO Article"):
+    if not transcript:
+        st.error("Please enter a video transcript.")
+    elif len(transcript) < 100:
+        st.warning("The transcript is quite short. The generated article may not be comprehensive.")
+    initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
+    st.session_state['initial_article'] = initial_article
+    st.session_state['raw_output'] = raw_output
+    st.session_state['transcript'] = transcript
+    st.session_state['target_languages'] = target_languages
+    st.session_state['existing_h1'] = existing_h1
+    st.session_state['existing_header'] = existing_header
+
+    st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
+    st.expander("View Raw HTML").code(initial_article)
+    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article}</div>', height=500, scrolling=True)
+    st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+
+    fact_check_results = fact_check_article(initial_article, transcript)
+    st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
+    st.write(fact_check_results)
+
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+if 'initial_article' in st.session_state:
+    st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
+    user_feedback = st.text_area("Enter your feedback (optional):", height=200)
+
+    if st.button("Submit Feedback"):
+        if user_feedback:
+            revised_article = generate_revised_article(
+                st.session_state['initial_article'],
+                user_feedback,
+                st.session_state['raw_output'],
+                st.session_state['target_languages'],
+                st.session_state['existing_h1'],
+                st.session_state['existing_header']
+            )
+            st.session_state['revised_article'] = revised_article
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
+                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article"]}</div>', height=500, scrolling=True)
+            with col2:
+                st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
+                st.expander("View Raw HTML").code(revised_article)
+                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article}</div>', height=500, scrolling=True)
+                st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
+
+                fact_check_results = fact_check_article(revised_article, st.session_state['transcript'])
+                st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
+                st.write(fact_check_results)
+        else:
+            st.warning("Please provide feedback to generate a revised article.")
+
+    generate_faq_checkbox = st.checkbox("Generate FAQ Section")
+    if generate_faq_checkbox:
+        with st.spinner("Generating FAQ section..."):
+            if 'revised_article' in st.session_state:
+                faq_content = asyncio.run(generate_faq(st.session_state['revised_article']))
             else:
-                st.warning("Please provide feedback to generate a revised article.")
-
-if __name__ == "__main__":
-    main()
+                faq_content = asyncio.run(generate_faq(st.session_state['initial_article']))
+        st.markdown('<div class="subheader">FAQ Section</div>', unsafe_allow_html=True)
+        st.write(faq_content)
