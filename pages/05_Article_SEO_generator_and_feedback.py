@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import base64
 import streamlit.components.v1 as components
-from data_common.connectors.sm_connector import SecretManager
+#from data_common.connectors.sm_connector import SecretManager
 
 
 # Load environment variables
