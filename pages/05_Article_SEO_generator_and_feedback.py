@@ -27,7 +27,7 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
-def generate_seo_article(transcript, target_languages):
+def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
     system_processing = """
         1. Preprocess the transcript:
@@ -65,8 +65,7 @@ You are an AI assistant skilled at converting video transcripts into SEO-optimiz
    - Use the provided H1 and header as context:
      <h1>{existing_h1}</h1>
      <header>{existing_header}</header>
-   - Determine the article structure based on the transcript content:
-     <transcript>{transcript}</transcript>
+   - Determine the article structure based on the pre-processed transcript content
    - Generate H2 subheadings:
      - For each key quote or key phrase in the transcript, create an H2 subheading.
      - If a quote, use the quote text between quotation marks as the H2.
@@ -97,14 +96,21 @@ You are an AI assistant skilled at converting video transcripts into SEO-optimiz
    - Use schema markup where relevant (e.g., InterviewObject for interview quotes).
    - Output: seo_optimized_article (HTML string).
 
-Existing H1 for this article
+Existing H1 for this article =
+"
 {existing_h1}
+"
 
-Existing H1 for this article
+Existing H1 for this article =
+"
 {existing_header}
+"
 
-Initial request:
+Initial pre-processed transcript =
+"
 {raw_output}
+"
+
 
 Output: seo_optimized_article (HTML string) in the target languages: {', '.join(target_languages)} :
 """
@@ -118,7 +124,7 @@ Output: seo_optimized_article (HTML string) in the target languages: {', '.join(
     html_content = message.content[0].text
     return html_content, raw_output
 
-def generate_revised_article(html_content, user_feedback, initial_request, target_languages):
+def generate_revised_article(html_content, user_feedback, initial_request, target_languages, existing_h1, existing_header):
     """Generates a revised version of the article based on user feedback."""
     system_revision = f"""
         You are an AI assistant skilled at revising video transcripts into SEO-optimized articles based on user feedback. Follow these guidelines:
@@ -132,8 +138,14 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
         Initial request:
         {initial_request}
 
+        Existing H1 for this article
+        {existing_h1}
+
+        Existing Header for this article
+        {existing_header}
+
         Current article HTML:
-        {initial_request}  # Assuming the initial_request contains the current HTML content
+        {html_content}
 
         User feedback:
         {user_feedback}
@@ -146,7 +158,7 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
         max_tokens=4096,
         temperature=0,
         system=system_revision,
-        messages=[{"role": "user", "content": user_feedback}]
+        messages=[{"role": "user", "content": system_revision}]
     )
     revised_html_content = message.content[0].text
     return revised_html_content
@@ -204,7 +216,9 @@ def main():
                     st.session_state['initial_article'],
                     user_feedback,
                     st.session_state['initial_request'],
-                    st.session_state['target_languages']
+                    st.session_state['target_languages'],
+                    st.session_state['existing_h1'],
+                    st.session_state['existing_header']
                 )
                 st.session_state['revised_article'] = revised_article
 
