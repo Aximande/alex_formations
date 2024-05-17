@@ -247,6 +247,11 @@ Provide your full analysis and fact check questions in a single response. No nee
     return fact_check_results
 
 async def generate_faq(query: str, report_type: str = "research_report") -> str:
+    if 'revised_article' in st.session_state:
+        article_content = st.session_state['revised_article']
+    else:
+        article_content = st.session_state['initial_article']
+
     query = f"Generate a short FAQs related to the topic: {article_content}"
     researcher = GPTResearcher(query=query, report_type=report_type)
     # Conduct research on the given query
