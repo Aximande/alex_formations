@@ -3,7 +3,6 @@ import anthropic
 from dotenv import load_dotenv
 import os
 import base64
-import asyncio
 import streamlit.components.v1 as components
 from gpt_researcher import GPTResearcher
 
@@ -12,8 +11,6 @@ load_dotenv()
 
 # Initialize the API client
 api_key = os.getenv("ANTHROPIC_API_KEY")
-
-tavily_api_key = os.getenv("TAVILY_API_KEY")
 
 if not api_key:
     st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
@@ -88,30 +85,34 @@ You are an AI assistant skilled at converting video transcripts into SEO-optimiz
      - Provide context or commentary around the quotes to create a coherent narrative.
    - Ensure the article maintains a neutral, informative, and journalistic tone.
    - Do not limit the length of the article.
-   - Output: article_content (string).
 
 4. Optimize for SEO:
    - Generate a meta description under 156 characters summarizing the article.
    - Identify 5-10 target keywords/keyphrases based on the key phrases.
    - Suggest relevant meta tags (e.g., article:author, article:published_time, og:image).
    - Ensure keywords are used in the meta description, article headers, and body text.
-   - Output: meta_description (string), keywords (list), meta_tags (list).
 
-5. Output the final article:
+5. Generate FAQ section:
+   - Use the existing H1 as the topic description.
+   - Generate a short FAQ section related to the topic, with 5-8 common questions and concise answers.
+   - Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
+
+6. Output the final article:
    - Generate the complete article in HTML format.
    - Include the provided H1 in the <body> section, right before the article content.
    - Add the provided header paragraph after the H1 tag.
    - Structure the body content with the generated H2 subheadings.
    - Include the meta description, keywords, and other meta tags in the HTML <head>.
-   - Use schema markup where relevant (e.g., InterviewObject for interview quotes).
-   - Output: seo_optimized_article (HTML string).
+   - Append the generated FAQ section at the end of the article content.
+   - Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
+   - Output: seo_optimized_article_with_faq (HTML string).
 
 Existing H1 for this article =
 "
 {existing_h1}
 "
 
-Existing H1 for this article =
+Existing Header for this article =
 "
 {existing_header}
 "
@@ -122,7 +123,7 @@ Initial pre-processed transcript =
 "
 
 
-Output: seo_optimized_article (HTML string) in the target languages: {', '.join(target_languages)} :
+Output: seo_optimized_article_with_faq (HTML string) in the target languages: {', '.join(target_languages)} :
 """
     message = client.messages.create(
         model="claude-3-opus-20240229",
@@ -131,10 +132,8 @@ Output: seo_optimized_article (HTML string) in the target languages: {', '.join(
         system=system_generation,
         messages=[{"role": "user", "content": system_generation}]
     )
-    html_content = message.content[0].text
-    # Add a placeholder for the FAQ section
-    html_content += "<!-- FAQ_PLACEHOLDER -->"
-    return html_content, raw_output
+    html_content_with_faq = message.content[0].text
+    return html_content_with_faq, raw_output
 
 def generate_revised_article(html_content, user_feedback, initial_request, target_languages, existing_h1, existing_header):
     """Generates a revised version of the article based on user feedback."""
@@ -145,7 +144,7 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
         - Update the title, meta description, keywords, and other metadata based on the feedback.
         - Modify the article content, including the lead paragraph, body paragraphs, and interview quotes, to address the user's feedback.
         - Ensure the revised article is coherent, well-structured, and optimized for SEO.
-        - Use schema markup where relevant (e.g., InterviewObject for interview quotes).
+        - Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
 
         Initial request:
         {initial_request}
@@ -162,7 +161,7 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
         User feedback:
         {user_feedback}
 
-        Output: revised_seo_optimized_article (HTML string) in the target languages: {', '.join(target_languages)} :
+        Output: revised_seo_optimized_article_with_faq (HTML string) in the target languages: {', '.join(target_languages)} :
     """
 
     message = client.messages.create(
@@ -172,9 +171,8 @@ def generate_revised_article(html_content, user_feedback, initial_request, targe
         system=system_revision,
         messages=[{"role": "user", "content": system_revision}]
     )
-    revised_html_content = message.content[0].text
-    revised_html_content += "<!-- FAQ_PLACEHOLDER -->"
-    return revised_html_content
+    revised_html_content_with_faq = message.content[0].text
+    return revised_html_content_with_faq
 
 def fact_check_article(article_content, transcript):
     fact_check_prompt = f"""
@@ -249,18 +247,6 @@ Provide your full analysis and fact check questions in a single response. No nee
     fact_check_results = message.content[0].text
     return fact_check_results
 
-def generate_faq(topic_description: str, report_type: str = "research_report") -> str:
-    query = f"Generate a short FAQ section related to the topic: {topic_description}"
-    researcher = GPTResearcher(query=query, report_type=report_type)
-
-    # Conduct research on the given query
-    researcher.conduct_research()
-
-    # Write the report
-    faq_content = researcher.write_report()
-
-    return faq_content
-
 st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
 st.image("static/brutAI_logo_noir_background.png", width=300)
@@ -278,75 +264,62 @@ if st.button("Generate SEO Article"):
         st.error("Please enter a video transcript.")
     elif len(transcript) < 100:
         st.warning("The transcript is quite short. The generated article may not be comprehensive.")
-    initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
-    st.session_state['initial_article'] = initial_article
+    initial_article_with_faq, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header)
+    st.session_state['initial_article_with_faq'] = initial_article_with_faq
     st.session_state['raw_output'] = raw_output
     st.session_state['transcript'] = transcript
     st.session_state['target_languages'] = target_languages
     st.session_state['existing_h1'] = existing_h1
     st.session_state['existing_header'] = existing_header
 
-    st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-    st.expander("View Raw HTML").code(initial_article)
-    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article}</div>', height=500, scrolling=True)
-    st.markdown(download_html(initial_article, "initial_article.html"), unsafe_allow_html=True)
+    st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
+    st.expander("View Raw HTML").code(initial_article_with_faq)
+    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
+    st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
 
-    fact_check_results = fact_check_article(initial_article, transcript)
+    fact_check_results = fact_check_article(initial_article_with_faq, transcript)
     st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
     st.write(fact_check_results)
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
-generate_faq_checkbox = st.checkbox("Generate FAQ Section")
-
-if 'initial_article' in st.session_state:
+if 'initial_article_with_faq' in st.session_state:
     st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
     user_feedback = st.text_area("Enter your feedback (optional):", height=200)
 
     if st.button("Submit Feedback"):
         if user_feedback:
-            revised_article = generate_revised_article(
-                st.session_state['initial_article'],
+            revised_article_with_faq = generate_revised_article(
+                st.session_state['initial_article_with_faq'],
                 user_feedback,
                 st.session_state['raw_output'],
                 st.session_state['target_languages'],
                 st.session_state['existing_h1'],
                 st.session_state['existing_header']
             )
-            st.session_state['revised_article'] = revised_article
+            st.session_state['revised_article_with_faq'] = revised_article_with_faq
 
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown('<div class="subheader">Initial SEO Article</div>', unsafe_allow_html=True)
-                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article"]}</div>', height=500, scrolling=True)
+                st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
+                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article_with_faq"]}</div>', height=800, scrolling=True)
             with col2:
-                st.markdown('<div class="subheader">Revised SEO Article</div>', unsafe_allow_html=True)
-                st.expander("View Raw HTML").code(revised_article)
-                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article}</div>', height=500, scrolling=True)
-                st.markdown(download_html(revised_article, "revised_article.html"), unsafe_allow_html=True)
+                st.markdown('<div class="subheader">Revised SEO Article with FAQ</div>', unsafe_allow_html=True)
+                st.expander("View Raw HTML").code(revised_article_with_faq)
+                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_faq}</div>', height=800, scrolling=True)
+                st.markdown(download_html(revised_article_with_faq, "revised_article_with_faq.html"), unsafe_allow_html=True)
 
-                fact_check_results = fact_check_article(revised_article, st.session_state['transcript'])
+                fact_check_results = fact_check_article(revised_article_with_faq, st.session_state['transcript'])
                 st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
                 st.write(fact_check_results)
         else:
             st.warning("Please provide feedback to generate a revised article.")
 
-if generate_faq_checkbox:
-    with st.spinner("Generating FAQ section..."):
-        if 'revised_article' in st.session_state:
-            topic_description = st.session_state['existing_h1']
-            article_content = st.session_state['revised_article']
-        else:
-            topic_description = st.session_state['existing_h1']
-            article_content = st.session_state['initial_article']
+# Perform additional research on the existing_h1
+if 'existing_h1' in st.session_state:
+    researcher = GPTResearcher(query=st.session_state['existing_h1'], report_type="research_report")
+    researcher.conduct_research()
+    h1_research_report = researcher.write_report()
 
-        faq_content = f"<h2>Frequently Asked Questions</h2>{generate_faq(topic_description)}"
-        article_with_faq = article_content.replace("<!-- FAQ_PLACEHOLDER -->", faq_content)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown('<div class="subheader">Initial/Revised SEO Article</div>', unsafe_allow_html=True)
-            components.html(article_content, height=500, scrolling=True)
-        with col2:
-            st.markdown('<div class="subheader">SEO Article with FAQ</div>', unsafe_allow_html=True)
-            components.html(article_with_faq, height=500, scrolling=True)
+    st.markdown('<div class="subheader">Additional Research on the Existing H1</div>', unsafe_allow_html=True)
+    st.write(h1_research_report)
