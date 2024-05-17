@@ -297,6 +297,8 @@ if st.button("Generate SEO Article"):
 
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
+generate_faq_checkbox = st.checkbox("Generate FAQ Section")
+
 if 'initial_article' in st.session_state:
     st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
     user_feedback = st.text_area("Enter your feedback (optional):", height=200)
@@ -329,7 +331,6 @@ if 'initial_article' in st.session_state:
         else:
             st.warning("Please provide feedback to generate a revised article.")
 
-    generate_faq_checkbox = st.checkbox("Generate FAQ Section")
 if generate_faq_checkbox:
     with st.spinner("Generating FAQ section..."):
         if 'revised_article' in st.session_state:
