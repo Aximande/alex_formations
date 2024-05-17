@@ -330,22 +330,22 @@ if 'initial_article' in st.session_state:
             st.warning("Please provide feedback to generate a revised article.")
 
     generate_faq_checkbox = st.checkbox("Generate FAQ Section")
-    if generate_faq_checkbox:
-        with st.spinner("Generating FAQ section..."):
-            if 'revised_article' in st.session_state:
-                topic_description = st.session_state['existing_h1']
-                article_content = st.session_state['revised_article']
-            else:
-                topic_description = st.session_state['existing_h1']
-                article_content = st.session_state['initial_article']
+if generate_faq_checkbox:
+    with st.spinner("Generating FAQ section..."):
+        if 'revised_article' in st.session_state:
+            topic_description = st.session_state['existing_h1']
+            article_content = st.session_state['revised_article']
+        else:
+            topic_description = st.session_state['existing_h1']
+            article_content = st.session_state['initial_article']
 
-            faq_content = generate_faq(topic_description)
-            article_with_faq = article_content.replace("<!-- FAQ_PLACEHOLDER -->", f"<h2>Frequently Asked Questions</h2>{faq_content}")
+        faq_content = f"<h2>Frequently Asked Questions</h2>{generate_faq(topic_description)}"
+        article_with_faq = article_content.replace("<!-- FAQ_PLACEHOLDER -->", faq_content)
 
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown('<div class="subheader">Initial/Revised SEO Article</div>', unsafe_allow_html=True)
-                components.html(article_content, height=500, scrolling=True)
-            with col2:
-                st.markdown('<div class="subheader">SEO Article with FAQ</div>', unsafe_allow_html=True)
-                components.html(article_with_faq, height=500, scrolling=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown('<div class="subheader">Initial/Revised SEO Article</div>', unsafe_allow_html=True)
+            components.html(article_content, height=500, scrolling=True)
+        with col2:
+            st.markdown('<div class="subheader">SEO Article with FAQ</div>', unsafe_allow_html=True)
+            components.html(article_with_faq, height=500, scrolling=True)
