@@ -255,7 +255,7 @@ async def generate_faq(query: str, report_type: str) -> str:
 
 st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
-st.image("brutAI_logo_noir_background.png", width=300)
+st.image("static/brutAI_logo_noir_background.png", width=300)
 
 st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
 transcript = st.text_area("Enter your video transcript:", height=200)
