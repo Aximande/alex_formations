@@ -246,9 +246,9 @@ Provide your full analysis and fact check questions in a single response. No nee
     fact_check_results = message.content[0].text
     return fact_check_results
 
-async def generate_faq(query: str, report_type: str) -> str:
+async def generate_faq(query: str, report_type: str = "research_report") -> str:
     query = f"Generate a short FAQs related to the topic: {article_content}"
-    researcher = GPTResearcher(query=query, report_type="research_report")
+    researcher = GPTResearcher(query=query, report_type=report_type)
     # Conduct research on the given query
     faq_content = await researcher.run()
     return faq_content
@@ -325,8 +325,8 @@ if 'initial_article' in st.session_state:
     if generate_faq_checkbox:
         with st.spinner("Generating FAQ section..."):
             if 'revised_article' in st.session_state:
-                faq_content = asyncio.run(generate_faq(st.session_state['revised_article']))
+                faq_content = asyncio.run(generate_faq(st.session_state['revised_article'],report_type="research_report"))
             else:
-                faq_content = asyncio.run(generate_faq(st.session_state['initial_article']))
+                faq_content = asyncio.run(generate_faq(st.session_state['initial_article'],report_type="research_report"))
         st.markdown('<div class="subheader">FAQ Section</div>', unsafe_allow_html=True)
         st.write(faq_content)
