@@ -13,6 +13,8 @@ load_dotenv()
 # Initialize the API client
 api_key = os.getenv("ANTHROPIC_API_KEY")
 
+tavily_api_key = os.getenv("TAVILY_API_KEY")
+
 if not api_key:
     st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
     st.stop()
@@ -244,15 +246,11 @@ Provide your full analysis and fact check questions in a single response. No nee
     fact_check_results = message.content[0].text
     return fact_check_results
 
-async def generate_faq(article_content):
-    query = f"FAQs related to the topic: {article_content}"
-    researcher = GPTResearcher(query=query, report_type="faq")
-
+async def generate_faq(query: str, report_type: str) -> str:
+    query = f"Generate a short FAQs related to the topic: {article_content}"
+    researcher = GPTResearcher(query=query, report_type="research_report")
     # Conduct research on the given query
-    research_result = await researcher.conduct_research()
-
-    # Write the FAQ
-    faq_content = await researcher.write_report()
+    faq_content = await researcher.run()
     return faq_content
 
 st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
