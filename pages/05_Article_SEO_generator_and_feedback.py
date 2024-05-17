@@ -333,7 +333,7 @@ if 'initial_article' in st.session_state:
     if generate_faq_checkbox:
         with st.spinner("Generating FAQ section..."):
             if 'revised_article' in st.session_state:
-                topic_description = st.session_state['revised_h1']
+                topic_description = st.session_state['existing_h1']
                 article_content = st.session_state['revised_article']
             else:
                 topic_description = st.session_state['existing_h1']
