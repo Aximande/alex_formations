@@ -334,8 +334,8 @@ if 'initial_article_with_faq' in st.session_state:
 # Perform additional research on the existing_h1
 if 'existing_h1' in st.session_state:
     researcher = GPTResearcher(query=st.session_state['existing_h1'], report_type="research_report")
-    researcher.conduct_research()
-    h1_research_report = researcher.write_report()
+    await researcher.conduct_research()
+    h1_research_report = await researcher.write_report()
 
     st.markdown('<div class="subheader">Additional Research on the Existing H1</div>', unsafe_allow_html=True)
     st.write(h1_research_report)
