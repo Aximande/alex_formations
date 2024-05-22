@@ -418,7 +418,7 @@ def main():
         st.session_state['existing_header'] = existing_header
 
         # Generate a research report based on the transcript, existing H1, and existing header
-        faq_query = f"Generate a FAQ based on the following transcript of a video:\n\n{transcript}\n\nExisting H1: {existing_h1}\nExisting Header: {existing_header}"
+        faq_query = f"Generate a FAQ based on the following topic {existing_h1}"
         faq_research_report = asyncio.run(get_report(faq_query, "research_report"))
 
         # Generate FAQ questions based on the research report
