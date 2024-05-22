@@ -8,11 +8,8 @@ import streamlit.components.v1 as components
 from gpt_researcher import GPTResearcher
 from fpdf import FPDF
 
-
-
 # Load environment variables
 load_dotenv()
-
 
 # Initialize the API client
 api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -44,7 +41,6 @@ def download_pdf(html_content, file_name):
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
     system_processing = f"""
-
 Preprocess the transcript:
 
 Extract the transcript text from the <transcript> tags.
@@ -53,7 +49,6 @@ Fix any obvious typos or transcription errors.
 Split the text into individual sentences/utterances.
 Output: cleaned_transcript with diarization (a list of strings, each representing a sentence/utterance).
 
-
 Analyze the preprocessed transcript:
 
 Identify the main topic based on tf-idf scores of n-grams.
@@ -61,7 +56,6 @@ Extract named entities (people, places, organizations) to identify subtopics.
 Identify question-answer pairs based on typical question words/phrases.
 Extract key phrases using an unsupervised keyphrase extraction model.
 Output: main_topic (string), subtopics (list of strings), qa_pairs (list of tuples), key_phrases (list of strings).
-
 
 Generate alternative suggestions for meta title, meta description, H1, and header:
 
@@ -72,12 +66,9 @@ Meta description (max 156 characters)
 H1 (max 60 characters)
 Header (max 300 characters)
 
-
 Ensure the suggested elements are engaging, concise, and capture the main theme of the transcript.
 Include the main keywords of the article in each element.
 Output: alt_meta_title_suggestions (list of strings), alt_meta_description_suggestions (list of strings), alt_h1_suggestions (list of strings), alt_header_suggestions (list of strings).
-
-
 
 Existing H1: {existing_h1}
 Existing Header: {existing_header}
@@ -112,7 +103,6 @@ For each key quote or key phrase in the transcript, create an H2 subheading.
 If a quote, use the quote text between quotation marks as the H2.
 If not a quote, use a phrase with essential keywords related to the H1.
 
-
 Generate body paragraphs for each H2 subheading:
 
 Create two paragraphs, each consisting of 7-8 sentences.
@@ -121,11 +111,9 @@ When quotes are present in the transcript, use them as direct quotes in the body
 Introduce each quote with the speaker's full name and title (when available) and a varied verb (e.g., "explains", "says", "mentions", "indique", "ajoute", "précise", "affirme", "déclare").
 Provide context or commentary around the quotes to create a coherent narrative.
 
-
 Maintain a neutral, journalistic, and informative tone throughout the article.
 Preserve quotes from the transcript without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
 Do not limit the length of the article.
-
 
 Optimize for SEO:
 
@@ -135,12 +123,10 @@ Identify 5-10 target keywords/keyphrases based on the key phrases.
 Suggest relevant meta tags (e.g., article:author, article:published_time, og:image).
 Ensure keywords are used in the meta title, meta description, article headers, and body text.
 
-
 Generate FAQ section:
 
 Based on the article content, generate 1-2 relevant FAQ questions and answers.
 Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
-
 
 Output the final article:
 
@@ -153,8 +139,6 @@ Include the meta description, keywords, and other meta tags in the HTML <head>.
 Append the generated FAQ section at the end of the article content.
 Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
 Output: seo_optimized_article_with_faq (HTML string).
-
-
 
 Remember, preserving quotes from the transcript and creating an article based on the given transcript is of utmost importance. Success in following these instructions will result in a golden VIP ticket for Taylor Swift's concert!
 Existing H1 for this article = "{existing_h1}"
@@ -276,8 +260,6 @@ def fact_check_article(article_content, transcript):
 
     fact_check_results = message.content[0].text
     return fact_check_results
-
-
 
 def generate_faq_from_report(report):
     """Generates 2-3 FAQ questions based on the report."""
@@ -431,8 +413,6 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
 
-
-
     if st.button("Generate SEO Article"):
         if not transcript:
             st.error("Please enter a video transcript.")
@@ -446,12 +426,15 @@ def main():
         st.session_state['existing_h1'] = existing_h1
         st.session_state['existing_header'] = existing_header
 
-        # Generate a research report on the H1 and Header
-        h1_header_query = f"H1: {existing_h1}\nHeader: {existing_header}"
-        h1_header_research_report = asyncio.run(get_report(h1_header_query, "research_report", custom_source_urls))
+        # Generate a research report based on the transcript, existing H1, and existing header
+        faq_query = f"Generate a FAQ based on the following transcript of a video:\n\n{transcript}\n\nExisting H1: {existing_h1}\nExisting Header: {existing_header}"
+        faq_research_report = asyncio.run(get_report(faq_query, "research_report"))
+        # Provide an option to download the GPTResearcher report as a PDF
+        st.markdown(download_pdf_report(faq_research_report, "faq_research_report_by_gpt_researcher.pdf"), unsafe_allow_html=True)
+
 
         # Generate FAQ questions based on the research report
-        faq_questions = generate_faq_from_report(h1_header_research_report)
+        faq_questions = generate_faq_from_report(faq_research_report)
 
         # Incorporate the FAQ section into the initial SEO article
         initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_questions)
