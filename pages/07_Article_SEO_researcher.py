@@ -369,7 +369,7 @@ def generate_additional_paragraphs(yourtextguru_feedback):
         Yourtextguru feedback:
         {yourtextguru_feedback}
 
-        Output: additional_paragraphs (list of strings):
+        Output: additional_paragraphs (list of strings, where each string represents a paragraph):
 """
 
     message = client.messages.create(
@@ -379,7 +379,7 @@ def generate_additional_paragraphs(yourtextguru_feedback):
         system=system_additional_paragraphs,
         messages=[{"role": "user", "content": system_additional_paragraphs}]
     )
-    additional_paragraphs = message.content[0].text
+    additional_paragraphs = message.content[0].text.strip().split("\n\n")
     return additional_paragraphs
 
 async def get_report(query: str, report_type: str) -> str:
