@@ -262,11 +262,12 @@ Follow these guidelines:
 - Identify the most relevant or significant findings from the report.
 - Generate 2-3 relevant FAQ questions based on the report findings.
 - Ensure the FAQ questions address the key points or discrepancies found in the report.
+- Output the FAQ questions as a comma-separated list.
 
 Report:
 {report}
 
-Output: generated_faq_questions (list of strings):
+Output the generated FAQ questions as a comma-separated list:
 """
 
     message = client.messages.create(
@@ -276,14 +277,14 @@ Output: generated_faq_questions (list of strings):
         system=system_faq_generation,
         messages=[{"role": "user", "content": system_faq_generation}]
     )
-    generated_faq_questions = message.content[0].text
+    generated_faq_questions = message.content[0].text.split(",")
     return generated_faq_questions
 
 def incorporate_faq(article_html, faq_questions):
     """Incorporates the FAQ section into the SEO article HTML."""
     faq_section = f"<h2>Frequently Asked Questions</h2>\n"
     for question in faq_questions:
-        faq_section += f"<h3>{question}</h3>\n<p>Answer will be provided here.</p>\n"
+        faq_section += f"<h3>{question.strip()}</h3>\n<p>Answer will be provided here.</p>\n"
 
     # Find the closing </body> tag
     closing_body_tag = article_html.find("</body>")
