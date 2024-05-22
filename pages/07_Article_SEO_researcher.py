@@ -38,6 +38,18 @@ def download_pdf(html_content, file_name):
     href = f'<a href="data:application/pdf;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
+def download_pdf_report(report_content, file_name):
+    """Convert report content to a PDF file and generate a download link."""
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    for line in report_content.split("\n"):
+        pdf.cell(200, 10, txt=line, ln=1, align="L")
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+    b64 = base64.b64encode(pdf_bytes).decode()
+    href = f'<a href="data:application/pdf;base64,{b64}" download="{file_name}">Download {file_name}</a>'
+    return href
+
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
     system_processing = f"""
