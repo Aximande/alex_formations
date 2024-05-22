@@ -9,8 +9,12 @@ load_dotenv()
 OPEN_API_KEY = os.getenv("OPENAI_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
-async def generate_report(query, report_type):
-    researcher = GPTResearcher(query=query, report_type=report_type)
+async def generate_report(query, report_type, sources=None):
+    if sources:
+        researcher = GPTResearcher(query=query, report_type=report_type, source_urls=sources)
+    else:
+        researcher = GPTResearcher(query=query, report_type=report_type)
+
     await researcher.conduct_research()
     report = await researcher.write_report()
     return report
@@ -23,12 +27,19 @@ def main():
     query = st.text_input("Enter your query:")
     report_type = st.selectbox("Select the type of report:", ["research_report", "resource_report", "custom_report"])
 
+    research_option = st.radio("Select research option:", ("Web Search", "Specific URLs"))
+
+    sources = None
+    if research_option == "Specific URLs":
+        urls = st.text_area("Enter URLs (one per line):")
+        sources = [url.strip() for url in urls.split("\n") if url.strip()]
+
     if st.button("Generate Report"):
         if not query:
             st.error("Please enter a query.")
         else:
             with st.spinner("Generating report..."):
-                report = asyncio.run(generate_report(query, report_type))
+                report = asyncio.run(generate_report(query, report_type, sources))
 
             st.markdown('<div class="subheader">Generated Report</div>', unsafe_allow_html=True)
             st.write(report)
