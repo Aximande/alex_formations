@@ -427,7 +427,7 @@ def main():
         st.session_state['existing_header'] = existing_header
 
         # Generate a research report based on the transcript, existing H1, and existing header
-        faq_query = f"Generate a FAQ based on the following transcript of a video:\n\n{transcript}\n\nExisting H1: {existing_h1}\nExisting Header: {existing_header}"
+        faq_query = f"Generate a FAQ based for a journalistic article on the following topic: {existing_h1}"
         faq_research_report = asyncio.run(get_report(faq_query, "research_report"))
         # Provide an option to download the GPTResearcher report as a PDF
         st.markdown(download_pdf_report(faq_research_report, "faq_research_report_by_gpt_researcher.pdf"), unsafe_allow_html=True)
