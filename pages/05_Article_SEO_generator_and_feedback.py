@@ -260,6 +260,37 @@ Provide your full analysis and fact check questions in a single response. No nee
     fact_check_results = message.content[0].text
     return fact_check_results
 
+def revise_article_with_yourtextguru(article_content, yourtextguru_recommendations, target_languages):
+    """Revises the SEO article based on yourtextguru recommendations."""
+    system_revision = f"""
+You are an AI assistant skilled at revising SEO articles based on recommendations from yourtextguru. Follow these guidelines:
+
+- Carefully review the SEO article and the yourtextguru recommendations.
+- Identify areas in the article that need improvement based on the recommendations.
+- Revise the article content, including the lead paragraph, body paragraphs, and interview quotes, to address the yourtextguru recommendations.
+- Ensure that the revised article maintains the integrity of the original transcript and preserves quotes without modification.
+- Optimize the revised article for SEO based on the yourtextguru recommendations.
+- Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
+
+Current SEO article:
+{article_content}
+
+Yourtextguru recommendations:
+{yourtextguru_recommendations}
+
+Output: revised_seo_article_with_yourtextguru (HTML string) in the target languages: {', '.join(target_languages)}:
+"""
+
+    message = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=4096,
+        temperature=0,
+        system=system_revision,
+        messages=[{"role": "user", "content": system_revision}]
+    )
+    revised_article_with_yourtextguru = message.content[0].text
+    return revised_article_with_yourtextguru
+
 st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
 st.image("static/brutAI_logo_noir_background.png", width=300)
