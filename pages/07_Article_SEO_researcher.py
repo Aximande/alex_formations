@@ -352,7 +352,25 @@ def generate_additional_paragraphs(yourtextguru_feedback):
 def main():
     st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
 
+    # Add your logo at the top of the page
     st.image("static/brutAI_logo_noir_background.png", width=300)
+
+    # Add CSS styling for larger section titles
+    st.markdown("""
+        <style>
+        .header {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .subheader {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     st.markdown('<div class="header">SEO Article Generator from Transcripts</div>', unsafe_allow_html=True)
     transcript = st.text_area("Enter your video transcript:", height=200)
@@ -361,6 +379,8 @@ def main():
     target_languages = st.multiselect("Select target languages for translation (optional):",
                                         ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                         default="French")
+
+    use_gpt_researcher = st.checkbox("Use GPT Researcher for Fact-Checking and FAQ Generation")
 
     if st.button("Generate SEO Article"):
         if not transcript:
@@ -380,10 +400,7 @@ def main():
         components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
         st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
 
-        if 'use_gpt_researcher' not in st.session_state:
-            st.session_state['use_gpt_researcher'] = False
-
-        if st.session_state['use_gpt_researcher']:
+        if use_gpt_researcher:
             fact_check_summary = fact_check_article(initial_article_with_faq, transcript)
             faq = asyncio.run(generate_faq_from_fact_check(fact_check_summary))
 
@@ -428,7 +445,7 @@ def main():
                     components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_faq}</div>', height=800, scrolling=True)
                     st.markdown(download_html(revised_article_with_faq, "revised_article_with_faq.html"), unsafe_allow_html=True)
 
-                    if st.session_state['use_gpt_researcher']:
+                    if use_gpt_researcher:
                         fact_check_summary = fact_check_article(revised_article_with_faq, st.session_state['transcript'])
                         faq = asyncio.run(generate_faq_from_fact_check(fact_check_summary))
 
@@ -447,9 +464,17 @@ def main():
             else:
                 st.warning("Please provide feedback to generate a revised article.")
 
-    if 'revised_article_with_faq' in st.session_state:
-        yourtextguru_feedback = st.text_input("Enter feedback from yourtextguru:")
-        if yourtextguru_feedback:
+    yourtextguru_feedback = st.text_input("Enter feedback from yourtextguru:")
+    if yourtextguru_feedback:
+        if 'initial_article_with_faq' in st.session_state:
+            article_content = st.session_state['initial_article_with_faq']
+        elif 'revised_article_with_faq' in st.session_state:
+            article_content = st.session_state['revised_article_with_faq']
+        else:
+            st.warning("Please generate an article first before providing yourtextguru feedback.")
+            article_content = None
+
+        if article_content:
             additional_paragraphs = generate_additional_paragraphs(yourtextguru_feedback)
 
             st.markdown('<div class="subheader">Additional Paragraphs Based on Yourtextguru Feedback</div>', unsafe_allow_html=True)
