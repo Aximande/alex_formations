@@ -19,7 +19,7 @@ async def generate_report(query, report_type, sources=None, local_docs=None):
                 doc_path = os.path.join(tmpdir, doc.name)
                 with open(doc_path, "wb") as f:
                     f.write(doc.getvalue())
-            researcher = GPTResearcher(query=query, report_type=report_type, report_source="documents", doc_path=tmpdir)
+            researcher = GPTResearcher(query=query, report_type=report_type, doc_path=tmpdir)
     else:
         researcher = GPTResearcher(query=query, report_type=report_type)
 
