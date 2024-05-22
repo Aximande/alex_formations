@@ -431,9 +431,7 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
 
-    # Add input for custom source URLs
-    custom_sources = st.text_input("Enter custom source URLs (comma-separated):")
-    custom_source_urls = [url.strip() for url in custom_sources.split(",")] if custom_sources else []
+
 
     if st.button("Generate SEO Article"):
         if not transcript:
