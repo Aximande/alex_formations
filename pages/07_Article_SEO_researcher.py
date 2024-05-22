@@ -6,7 +6,7 @@ import asyncio
 import base64
 import streamlit.components.v1 as components
 from gpt_researcher import GPTResearcher
-from fpdf import FPDF
+
 
 # Load environment variables
 load_dotenv()
@@ -28,27 +28,6 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
-def download_pdf(html_content, file_name):
-    """Convert HTML content to a PDF file and generate a download link."""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.write_html(html_content)
-    pdf_bytes = pdf.output(dest="S").encode("latin-1")
-    b64 = base64.b64encode(pdf_bytes).decode()
-    href = f'<a href="data:application/pdf;base64,{b64}" download="{file_name}">Download {file_name}</a>'
-    return href
-
-def download_pdf_report(report_content, file_name):
-    """Convert report content to a PDF file and generate a download link."""
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    for line in report_content.split("\n"):
-        pdf.cell(200, 10, txt=line, ln=1, align="L")
-    pdf_bytes = pdf.output(dest="S").encode("latin-1")
-    b64 = base64.b64encode(pdf_bytes).decode()
-    href = f'<a href="data:application/pdf;base64,{b64}" download="{file_name}">Download {file_name}</a>'
-    return href
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
     """Generates an initial SEO-optimized article from a transcript."""
@@ -439,11 +418,8 @@ def main():
         st.session_state['existing_header'] = existing_header
 
         # Generate a research report based on the transcript, existing H1, and existing header
-        faq_query = f"Generate a FAQ based for a journalistic article on the following topic: {existing_h1}"
+        faq_query = f"Generate a FAQ based on the following transcript of a video:\n\n{transcript}\n\nExisting H1: {existing_h1}\nExisting Header: {existing_header}"
         faq_research_report = asyncio.run(get_report(faq_query, "research_report"))
-        # Provide an option to download the GPTResearcher report as a PDF
-        st.markdown(download_pdf_report(faq_research_report, "faq_research_report_by_gpt_researcher.pdf"), unsafe_allow_html=True)
-
 
         # Generate FAQ questions based on the research report
         faq_questions = generate_faq_from_report(faq_research_report)
@@ -455,7 +431,6 @@ def main():
         st.expander("View Raw HTML").code(initial_article_with_faq)
         components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
         st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
-        st.markdown(download_pdf(initial_article_with_faq, "initial_article_with_faq.pdf"), unsafe_allow_html=True)
 
         # Add a checkbox or button to allow the user to optionally trigger the fact_check_article function
         run_fact_check = st.checkbox("Run fact-checking on the initial SEO article")
@@ -492,7 +467,6 @@ def main():
                     st.expander("View Raw HTML").code(revised_article_with_faq)
                     components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_faq}</div>', height=800, scrolling=True)
                     st.markdown(download_html(revised_article_with_faq, "revised_article_with_faq.html"), unsafe_allow_html=True)
-                    st.markdown(download_pdf(revised_article_with_faq, "revised_article_with_faq.pdf"), unsafe_allow_html=True)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
 
@@ -523,7 +497,6 @@ def main():
             st.expander("View Raw HTML").code(revised_article_with_yourtextguru_and_faq)
             components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_yourtextguru_and_faq}</div>', height=800, scrolling=True)
             st.markdown(download_html(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
-            st.markdown(download_pdf(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.pdf"), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
