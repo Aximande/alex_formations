@@ -6,6 +6,7 @@ import asyncio
 import base64
 import streamlit.components.v1 as components
 from gpt_researcher import GPTResearcher
+from fpdf import FPDF
 
 
 
@@ -28,6 +29,16 @@ def download_html(html_content, file_name):
     """Convert HTML content to a base64-encoded data URI and generate a download link."""
     b64 = base64.b64encode(html_content.encode()).decode()
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
+    return href
+
+def download_pdf(html_content, file_name):
+    """Convert HTML content to a PDF file and generate a download link."""
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.write_html(html_content)
+    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+    b64 = base64.b64encode(pdf_bytes).decode()
+    href = f'<a href="data:application/pdf;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header):
@@ -420,6 +431,10 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
 
+    # Add input for custom source URLs
+    custom_sources = st.text_input("Enter custom source URLs (comma-separated):")
+    custom_source_urls = [url.strip() for url in custom_sources.split(",")] if custom_sources else []
+
     if st.button("Generate SEO Article"):
         if not transcript:
             st.error("Please enter a video transcript.")
@@ -435,7 +450,7 @@ def main():
 
         # Generate a research report on the H1 and Header
         h1_header_query = f"H1: {existing_h1}\nHeader: {existing_header}"
-        h1_header_research_report = asyncio.run(get_report(h1_header_query, "research_report"))
+        h1_header_research_report = asyncio.run(get_report(h1_header_query, "research_report", custom_source_urls))
 
         # Generate FAQ questions based on the research report
         faq_questions = generate_faq_from_report(h1_header_research_report)
@@ -447,6 +462,7 @@ def main():
         st.expander("View Raw HTML").code(initial_article_with_faq)
         components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
         st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
+        st.markdown(download_pdf(initial_article_with_faq, "initial_article_with_faq.pdf"), unsafe_allow_html=True)
 
         # Add a checkbox or button to allow the user to optionally trigger the fact_check_article function
         run_fact_check = st.checkbox("Run fact-checking on the initial SEO article")
@@ -483,6 +499,7 @@ def main():
                     st.expander("View Raw HTML").code(revised_article_with_faq)
                     components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_faq}</div>', height=800, scrolling=True)
                     st.markdown(download_html(revised_article_with_faq, "revised_article_with_faq.html"), unsafe_allow_html=True)
+                    st.markdown(download_pdf(revised_article_with_faq, "revised_article_with_faq.pdf"), unsafe_allow_html=True)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
 
@@ -513,6 +530,7 @@ def main():
             st.expander("View Raw HTML").code(revised_article_with_yourtextguru_and_faq)
             components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_yourtextguru_and_faq}</div>', height=800, scrolling=True)
             st.markdown(download_html(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
+            st.markdown(download_pdf(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.pdf"), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
