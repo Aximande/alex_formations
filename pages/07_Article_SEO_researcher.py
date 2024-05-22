@@ -253,22 +253,31 @@ def fact_check_article(article_content, transcript):
     return fact_check_results
 
 def generate_faq_from_report(report):
-    """Generates 2-3 FAQ questions based on the report."""
+    """Generates 2-3 FAQ questions and answers based on the report."""
     system_faq_generation = f"""
-You are an AI assistant skilled at generating 2-3 concise FAQ questions based on a report.
-Follow these guidelines:
+    You are an AI assistant skilled at generating 2-3 concise FAQ questions and answers based on a report.
 
-- Review the provided report carefully.
-- Identify the most relevant or significant findings from the report.
-- Generate 2-3 relevant FAQ questions based on the report findings.
-- Ensure the FAQ questions address the key points or discrepancies found in the report.
-- Output the FAQ questions as a comma-separated list.
+    Follow these guidelines:
+    - Review the provided report carefully.
+    - Identify the most relevant or significant findings from the report.
+    - Generate 2-3 relevant FAQ questions based on the report findings.
+    - Ensure the FAQ questions address the key points or discrepancies found in the report.
+    - Provide a concise and informative answer for each FAQ question.
+    - Output the FAQ questions and answers in the following format:
+      Q: Question 1
+      A: Answer 1
 
-Report:
-{report}
+      Q: Question 2
+      A: Answer 2
 
-Output the generated FAQ questions as a comma-separated list:
-"""
+      Q: Question 3
+      A: Answer 3
+
+    Report:
+    {report}
+
+    Output the generated FAQ questions and answers:
+    """
 
     message = client.messages.create(
         model="claude-3-opus-20240229",
@@ -277,14 +286,19 @@ Output the generated FAQ questions as a comma-separated list:
         system=system_faq_generation,
         messages=[{"role": "user", "content": system_faq_generation}]
     )
-    generated_faq_questions = message.content[0].text.split(",")
-    return generated_faq_questions
 
-def incorporate_faq(article_html, faq_questions):
-    """Incorporates the FAQ section into the SEO article HTML."""
-    faq_section = f"<h2>Frequently Asked Questions</h2>\n"
-    for question in faq_questions:
-        faq_section += f"<h3>{question.strip()}</h3>\n<p>Answer will be provided here.</p>\n"
+    generated_faq = message.content[0].text.strip().split("\n\n")
+    faq_pairs = [faq.split("\n") for faq in generated_faq]
+
+    return faq_pairs
+
+def incorporate_faq(article_html, faq_pairs):
+    """Incorporates the FAQ section with questions and answers into the SEO article HTML."""
+    faq_section = "<h2>Frequently Asked Questions</h2>\n"
+    for pair in faq_pairs:
+        question = pair[0].replace("Q: ", "").strip()
+        answer = pair[1].replace("A: ", "").strip()
+        faq_section += f"<h3>{question}</h3>\n<p>{answer}</p>\n"
 
     # Find the closing </body> tag
     closing_body_tag = article_html.find("</body>")
