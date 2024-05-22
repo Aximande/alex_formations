@@ -266,28 +266,48 @@ def fact_check_article(article_content, transcript):
     fact_check_results = message.content[0].text
     return fact_check_results
 
-async def generate_faq_from_fact_check(fact_check_summary):
-    """Generates a small FAQ (2-3 questions) based on the fact-checking summary."""
+
+
+def generate_faq_from_report(report):
+    """Generates 2-3 FAQ questions based on the report."""
     system_faq_generation = f"""
-You are an AI assistant skilled at generating a concise FAQ based on fact-checking results.
+You are an AI assistant skilled at generating 2-3 concise FAQ questions based on a report.
 Follow these guidelines:
 
-- Review the fact-checking summary provided.
-- Identify the most relevant or significant findings from the fact-checking process.
-- Generate 2-3 relevant FAQ questions and answers based on the fact-checking summary.
-- Ensure the FAQ questions address the key points or discrepancies found during fact-checking.
-- Provide concise and informative answers to the FAQ questions.
+- Review the provided report carefully.
+- Identify the most relevant or significant findings from the report.
+- Generate 2-3 relevant FAQ questions based on the report findings.
+- Ensure the FAQ questions address the key points or discrepancies found in the report.
 
-Fact-checking summary:
-{fact_check_summary}
+Report:
+{report}
 
-Output: generated_faq (list of tuples containing question and answer):
+Output: generated_faq_questions (list of strings):
 """
 
-    researcher = GPTResearcher(fact_check_summary, "faq_generation")
-    await researcher.conduct_research()
-    generated_faq = await researcher.write_report()
-    return generated_faq
+    message = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=4096,
+        temperature=0,
+        system=system_faq_generation,
+        messages=[{"role": "user", "content": system_faq_generation}]
+    )
+    generated_faq_questions = message.content[0].text
+    return generated_faq_questions
+
+def incorporate_faq(article_html, faq_questions):
+    """Incorporates the FAQ section into the SEO article HTML."""
+    faq_section = f"<h2>Frequently Asked Questions</h2>\n"
+    for question in faq_questions:
+        faq_section += f"<h3>{question}</h3>\n<p>Answer will be provided here.</p>\n"
+
+    # Find the closing </body> tag
+    closing_body_tag = article_html.find("</body>")
+
+    # Insert the FAQ section before the closing </body> tag
+    revised_html = article_html[:closing_body_tag] + faq_section + article_html[closing_body_tag:]
+
+    return revised_html
 
 def revise_article_with_yourtextguru(article_content, yourtextguru_recommendations, target_languages):
     """Revises the SEO article based on yourtextguru recommendations."""
@@ -318,7 +338,22 @@ def revise_article_with_yourtextguru(article_content, yourtextguru_recommendatio
         messages=[{"role": "user", "content": system_revision}]
     )
     revised_article_with_yourtextguru = message.content[0].text
+
+    # Incorporate additional paragraphs
+    additional_paragraphs = generate_additional_paragraphs(yourtextguru_recommendations)
+    revised_article_with_yourtextguru = insert_additional_paragraphs(revised_article_with_yourtextguru, additional_paragraphs)
+
     return revised_article_with_yourtextguru
+
+def insert_additional_paragraphs(article_html, additional_paragraphs):
+    """Insert additional paragraphs into the article HTML."""
+    # Find the closing </body> tag
+    closing_body_tag = article_html.find("</body>")
+
+    # Insert additional paragraphs before the closing </body> tag
+    revised_html = article_html[:closing_body_tag] + "\n".join([f"<p>{paragraph}</p>" for paragraph in additional_paragraphs]) + article_html[closing_body_tag:]
+
+    return revised_html
 
 def generate_additional_paragraphs(yourtextguru_feedback):
     """Generates two additional body paragraphs based on yourtextguru feedback."""
@@ -348,6 +383,11 @@ def generate_additional_paragraphs(yourtextguru_feedback):
     additional_paragraphs = message.content[0].text
     return additional_paragraphs
 
+async def get_report(query: str, report_type: str) -> str:
+    researcher = GPTResearcher(query, report_type)
+    await researcher.conduct_research()
+    report = await researcher.write_report()
+    return report
 
 def main():
     st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
@@ -377,10 +417,8 @@ def main():
     existing_h1 = st.text_input("Enter your current H1:")
     existing_header = st.text_input("Enter your current header:")
     target_languages = st.multiselect("Select target languages for translation (optional):",
-                                        ["French", "Spanish", "German", "Hindi", "Afrikaans"],
-                                        default="French")
-
-    use_gpt_researcher = st.checkbox("Use GPT Researcher for Fact-Checking and FAQ Generation")
+                                      ["French", "Spanish", "German", "Hindi", "Afrikaans"],
+                                      default="French")
 
     if st.button("Generate SEO Article"):
         if not transcript:
@@ -395,24 +433,25 @@ def main():
         st.session_state['existing_h1'] = existing_h1
         st.session_state['existing_header'] = existing_header
 
+        # Generate a research report on the H1 and Header
+        h1_header_query = f"H1: {existing_h1}\nHeader: {existing_header}"
+        h1_header_research_report = asyncio.run(get_report(h1_header_query, "research_report"))
+
+        # Generate FAQ questions based on the research report
+        faq_questions = generate_faq_from_report(h1_header_research_report)
+
+        # Incorporate the FAQ section into the initial SEO article
+        initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_questions)
+
         st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
         st.expander("View Raw HTML").code(initial_article_with_faq)
         components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
         st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
 
-        if use_gpt_researcher:
-            fact_check_summary = fact_check_article(initial_article_with_faq, transcript)
-            faq = asyncio.run(generate_faq_from_fact_check(fact_check_summary))
+        # Add a checkbox or button to allow the user to optionally trigger the fact_check_article function
+        run_fact_check = st.checkbox("Run fact-checking on the initial SEO article")
 
-            st.markdown('<div class="subheader">Fact-Checking Summary</div>', unsafe_allow_html=True)
-            st.write(fact_check_summary)
-
-            st.markdown('<div class="subheader">Generated FAQ</div>', unsafe_allow_html=True)
-            for question, answer in faq:
-                st.write(f"Q: {question}")
-                st.write(f"A: {answer}")
-                st.write("---")
-        else:
+        if run_fact_check:
             fact_check_results = fact_check_article(initial_article_with_faq, transcript)
             st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
             st.write(fact_check_results)
@@ -444,23 +483,6 @@ def main():
                     st.expander("View Raw HTML").code(revised_article_with_faq)
                     components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_faq}</div>', height=800, scrolling=True)
                     st.markdown(download_html(revised_article_with_faq, "revised_article_with_faq.html"), unsafe_allow_html=True)
-
-                    if use_gpt_researcher:
-                        fact_check_summary = fact_check_article(revised_article_with_faq, st.session_state['transcript'])
-                        faq = asyncio.run(generate_faq_from_fact_check(fact_check_summary))
-
-                        st.markdown('<div class="subheader">Fact-Checking Summary</div>', unsafe_allow_html=True)
-                        st.write(fact_check_summary)
-
-                        st.markdown('<div class="subheader">Generated FAQ</div>', unsafe_allow_html=True)
-                        for question, answer in faq:
-                            st.write(f"Q: {question}")
-                            st.write(f"A: {answer}")
-                            st.write("---")
-                    else:
-                        fact_check_results = fact_check_article(revised_article_with_faq, st.session_state['transcript'])
-                        st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
-                        st.write(fact_check_results)
             else:
                 st.warning("Please provide feedback to generate a revised article.")
 
@@ -482,18 +504,15 @@ def main():
                 st.write(paragraph)
                 st.write("---")
 
-    # Perform additional research on the existing_h1
-    if 'existing_h1' in st.session_state:
-        h1_research_report = asyncio.run(generate_h1_research_report(st.session_state['existing_h1']))
+            revised_article_with_yourtextguru = revise_article_with_yourtextguru(article_content, yourtextguru_feedback, st.session_state['target_languages'])
+            st.session_state['revised_article_with_yourtextguru'] = revised_article_with_yourtextguru
 
-        st.markdown('<div class="subheader">Additional Research on the Existing H1</div>', unsafe_allow_html=True)
-        st.write(h1_research_report)
+            revised_article_with_yourtextguru_and_faq = incorporate_faq(revised_article_with_yourtextguru, faq_questions)
 
-async def generate_h1_research_report(existing_h1):
-    researcher = GPTResearcher(query=existing_h1, report_type="research_report")
-    await researcher.conduct_research()
-    h1_research_report = await researcher.write_report()
-    return h1_research_report
+            st.markdown('<div class="subheader">Revised SEO Article with Additional Paragraphs and FAQ</div>', unsafe_allow_html=True)
+            st.expander("View Raw HTML").code(revised_article_with_yourtextguru_and_faq)
+            components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_yourtextguru_and_faq}</div>', height=800, scrolling=True)
+            st.markdown(download_html(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
