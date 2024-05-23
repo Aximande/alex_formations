@@ -390,7 +390,7 @@ def main():
             st.session_state['existing_header'] = existing_header
 
             # Generate FAQ questions and answers based on the initial article content
-            faq_pairs = generate_faq_from_article(initial_article_with_faq, st.session_state['target_languages'])
+            faq_pairs = generate_faq_from_report(initial_article_with_faq, st.session_state['target_languages'])
 
             # Incorporate the FAQ section with questions and answers into the initial SEO article
             initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_pairs)
