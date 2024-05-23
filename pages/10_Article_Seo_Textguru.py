@@ -352,6 +352,7 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
     tone = st.selectbox("Select the tone of the article", ["Neutral", "Informative", "Persuasive"])
+    additional_keywords = st.text_input("Enter additional keywords (comma-separated)")
 
     if st.button("Generate SEO Article"):
         if not transcript:
@@ -359,34 +360,33 @@ def main():
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
         with st.spinner("Generating SEO article..."):
-            initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone)
-            st.session_state['initial_article'] = initial_article
+            initial_article_with_faq, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone, additional_keywords)
+            st.session_state['initial_article_with_faq'] = initial_article_with_faq
             st.session_state['raw_output'] = raw_output
             st.session_state['transcript'] = transcript
             st.session_state['target_languages'] = target_languages
             st.session_state['existing_h1'] = existing_h1
             st.session_state['existing_header'] = existing_header
 
-        # Generate FAQ questions based on the initial article content
-        faq_questions = generate_faq_from_article(initial_article, st.session_state['target_languages'])
+            # Generate FAQ questions based on the initial article content
+            faq_questions = generate_faq_from_article(initial_article_with_faq, st.session_state['target_languages'])
 
-        # Incorporate the FAQ section into the initial SEO article
-        initial_article_with_faq = incorporate_faq(initial_article, faq_questions)
-        st.session_state['initial_article_with_faq'] = initial_article_with_faq
+            # Incorporate the FAQ section into the initial SEO article
+            initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_questions)
 
-        st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
-        st.expander("View Raw HTML").code(initial_article_with_faq)
-        components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
-        st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
+            st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
+            st.expander("View Raw HTML").code(initial_article_with_faq)
+            components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{initial_article_with_faq}</div>', height=800, scrolling=True)
+            st.markdown(download_html(initial_article_with_faq, "initial_article_with_faq.html"), unsafe_allow_html=True)
 
-        # Add a checkbox or button to allow the user to optionally trigger the fact_check_article function
-        run_fact_check = st.checkbox("Run fact-checking on the initial SEO article")
+            # Add a checkbox or button to allow the user to optionally trigger the fact_check_article function
+            run_fact_check = st.checkbox("Run fact-checking on the initial SEO article")
 
-        if run_fact_check:
-            with st.spinner("Running fact-check..."):
-                fact_check_results = fact_check_article(initial_article_with_faq, transcript)
-                st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
-                st.write(fact_check_results)
+            if run_fact_check:
+                with st.spinner("Running fact-check..."):
+                    fact_check_results = fact_check_article(initial_article_with_faq, transcript)
+                    st.markdown('<div class="subheader">Fact-Check Results</div>', unsafe_allow_html=True)
+                    st.write(fact_check_results)
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -394,7 +394,8 @@ def main():
     run_gpt_researcher = st.checkbox("Run GPT-researcher")
 
     if run_gpt_researcher:
-        research_query = st.text_input("Enter your research query:")
+        faq_query = f"Generate a FAQ based on the following topic: {existing_h1}"
+        research_query = st.text_input("Enter your research query:", value=faq_query)
         if st.button("Run GPT-researcher"):
             if not research_query:
                 st.warning("Please enter a research query.")
