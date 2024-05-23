@@ -353,58 +353,10 @@ def revise_article_with_yourtextguru(article_content, yourtextguru_feedback, tar
 
     return article_with_additional_paragraphs
 
-def generate_seo_article_with_yourtextguru(transcript, target_languages, existing_h1, existing_header, tone, yourtextguru_feedback):
+def create_seo_article_with_yourtextguru(initial_article_content, yourtextguru_feedback, target_languages, existing_h1, existing_header, tone):
     """Generates a new SEO article that incorporates the Yourtextguru recommendations."""
-    system_processing = f"""
-    Preprocess the transcript:
-
-    Extract the transcript text from the <transcript> tags.
-    identify speaker name or labels when possible to understand who is talking
-    Fix any obvious typos or transcription errors.
-    Split the text into individual sentences/utterances.
-    Output: cleaned_transcript with diarization (a list of strings, each representing a sentence/utterance).
-
-    Analyze the preprocessed transcript:
-
-    Identify the main topic based on tf-idf scores of n-grams.
-    Extract named entities (people, places, organizations) to identify subtopics.
-    Identify question-answer pairs based on typical question words/phrases.
-    Extract key phrases using an unsupervised keyphrase extraction model.
-    Output: main_topic (string), subtopics (list of strings), qa_pairs (list of tuples), key_phrases (list of strings).
-
-    Generate alternative suggestions for meta title, meta description, H1, and header:
-
-    Based on the main topic, subtopics, and key phrases, generate 2-3 alternative suggestions for each element:
-
-    Meta title (max 60 characters)
-    Meta description (max 156 characters)
-    H1 (max 60 characters)
-    Header (max 300 characters)
-
-    Ensure the suggested elements are engaging, concise, and capture the main theme of the transcript.
-    Include the main keywords of the article in each element.
-    Output: alt_meta_title_suggestions (list of strings), alt_meta_description_suggestions (list of strings), alt_h1_suggestions (list of strings), alt_header_suggestions (list of strings).
-
-    Existing H1: {existing_h1}
-    Existing Header: {existing_header}
-    Tone: {tone}
-    Yourtextguru recommendations: {yourtextguru_feedback}
-    """
-
-    message = client.messages.create(
-        model="claude-3-haiku-20240307",
-        max_tokens=4096,
-        temperature=0,
-        system=system_processing,
-        messages=[{"role": "user", "content": f"<transcript>{transcript}</transcript>Target languages: {', '.join(target_languages)}"}]
-    )
-
-    raw_output = message.content[0].text
-    st.subheader("Preliminary analysis of your current transcript")
-    st.write(raw_output)
-
     system_generation = f"""
-    You are an AI assistant skilled at converting video transcripts into SEO-optimized articles that incorporate Yourtextguru recommendations. It is absolutely essential that you create an article that is based on the transcript provided and preserve quotes from the transcript without modification. This is the most important aspect of the task.
+    You are an AI assistant skilled at converting video transcripts into SEO-optimized articles that incorporate Yourtextguru recommendations. It is absolutely essential that you create an article that is based on the provided initial article content and preserve quotes from the transcript without modification. This is the most important aspect of the task.
     Follow this process:
 
     Generate the article content:
@@ -413,35 +365,18 @@ def generate_seo_article_with_yourtextguru(transcript, target_languages, existin
     <h1>{existing_h1}</h1>
     <header>{existing_header}</header>
 
-    Determine the article structure based on the pre-processed transcript content.
-    Generate H2 subheadings:
+    Incorporate the Yourtextguru recommendations:
+    Review the Yourtextguru recommendations and elegantly incorporate the top terms, 2-word and 3-word associations, and named entities into the article content.
+    Generate two additional body paragraphs that showcase the integration of the Yourtextguru insights.
+    Ensure the new paragraphs align with the overall tone and structure of the article.
 
-    For each key quote or key phrase in the transcript, create an H2 subheading.
-    If a quote, use the quote text between quotation marks as the H2.
-    If not a quote, use a phrase with essential keywords related to the H1.
-
-    Generate body paragraphs for each H2 subheading:
-
-    Create two paragraphs, each consisting of 7-8 sentences.
-    Preserve as much of the original transcript as possible without modifying the meaning.
-    When quotes are present in the transcript, use them as direct quotes in the body text, enclosed in quotation marks.
-    Introduce each quote with the speaker's full name and title (when available) and a varied verb (e.g., "explains", "says", "mentions", "indique", "ajoute", "précise", "affirme", "déclare").
-    Provide context or commentary around the quotes to create a coherent narrative.
-
-    Maintain a neutral, journalistic, and informative tone throughout the article.
-    Preserve quotes from the transcript without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
-    Use a {tone} tone throughout the article.
+    Maintain a {tone} tone throughout the article.
+    Preserve quotes from the initial article content without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
 
     Generate FAQ section:
 
     Based on the article content, generate 1-2 relevant FAQ questions and answers.
     Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
-
-    Incorporate Yourtextguru recommendations:
-
-    Review the Yourtextguru recommendations and elegantly incorporate the top terms, 2-word and 3-word associations, and named entities into the article content.
-    Generate two additional body paragraphs that showcase the integration of the Yourtextguru insights.
-    Ensure the new paragraphs align with the overall tone and structure of the article.
 
     Output the final article:
 
@@ -455,10 +390,8 @@ def generate_seo_article_with_yourtextguru(transcript, target_languages, existin
     Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
     Output: seo_optimized_article_with_yourtextguru_and_faq (HTML string).
 
-    Remember, preserving quotes from the transcript and creating an article based on the given transcript is of utmost importance. Success in following these instructions will result in a golden VIP ticket for Taylor Swift's concert!
     Existing H1 for this article = "{existing_h1}"
     Existing Header for this article = "{existing_header}"
-    Initial pre-processed transcript = "{raw_output}"
     Yourtextguru recommendations: {yourtextguru_feedback}
     Output: seo_optimized_article_with_yourtextguru_and_faq (HTML string) in the target languages: {', '.join(target_languages)}:
     """
@@ -616,27 +549,30 @@ def main():
             article_content = None
 
         if article_content:
-            with st.spinner("Generating additional paragraphs..."):
-                article_with_additional_paragraphs = revise_article_with_yourtextguru(article_content, yourtextguru_feedback, st.session_state['target_languages'])
-                st.session_state['article_with_additional_paragraphs'] = article_with_additional_paragraphs
-
-                # Generate a new SEO article with updated FAQ and additional paragraphs based on the research report
-                updated_article_with_faq, _ = generate_seo_article_with_yourtextguru(
-                    st.session_state['transcript'],
+            with st.spinner("Generating SEO article with Yourtextguru recommendations..."):
+                updated_article_with_faq = create_seo_article_with_yourtextguru(
+                    article_content,
+                    yourtextguru_feedback,
                     st.session_state['target_languages'],
                     st.session_state['existing_h1'],
                     st.session_state['existing_header'],
-                    st.session_state['tone'],
-                    article_with_additional_paragraphs  # Pass the article with additional paragraphs as additional input
+                    st.session_state['tone']
                 )
 
                 # Update the session state with the new article
                 st.session_state['revised_article_with_yourtextguru_and_faq'] = updated_article_with_faq
 
-                st.markdown('<div class="subheader">Revised SEO Article with Additional Paragraphs and FAQ</div>', unsafe_allow_html=True)
-                st.expander("View Raw HTML").code(updated_article_with_faq)
-                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{updated_article_with_faq}</div>', height=800, scrolling=True)
-                st.markdown(download_html(updated_article_with_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
+                # Display the head-to-head comparison
+                st.markdown('<div class="subheader">Comparison</div>', unsafe_allow_html=True)
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
+                    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article_with_faq"]}</div>', height=800, scrolling=True)
+                with col2:
+                    st.markdown('<div class="subheader">Revised SEO Article with Yourtextguru Recommendations</div>', unsafe_allow_html=True)
+                    st.expander("View Raw HTML").code(updated_article_with_faq)
+                    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{updated_article_with_faq}</div>', height=800, scrolling=True)
+                    st.markdown(download_html(updated_article_with_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
