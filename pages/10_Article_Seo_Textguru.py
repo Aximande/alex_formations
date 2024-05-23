@@ -106,11 +106,6 @@ Maintain a neutral, journalistic, and informative tone throughout the article.
 Preserve quotes from the transcript without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
 Use a {tone} tone throughout the article.
 
-Generate FAQ section:
-
-Based on the article content, generate 1-2 relevant FAQ questions and answers.
-Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
-
 Output the final article:
 
 Generate the complete article in HTML format.
@@ -241,25 +236,32 @@ def fact_check_article(article_content, transcript):
     fact_check_results = message.content[0].text
     return fact_check_results
 
-def generate_faq_from_article(article_content, target_languages):
-    """Generates 2-3 FAQ questions and answers based on the article content in the target languages."""
+def generate_faq_from_report(report, target_languages):
+    """Generates 2-3 FAQ questions and answers based on the report."""
     system_faq_generation = f"""
-You are an AI assistant skilled at generating 2-3 concise FAQ questions and answers based on an article in the following target languages: {', '.join(target_languages)}. [...]
+    You are an AI assistant skilled at generating 2-3 concise FAQ questions and answers based on a report in the following target languages: {', '.join(target_languages)}.
 
-Article content:
-{article_content}
+    Follow these guidelines:
+    - Review the provided report carefully.
+    - Identify the most relevant or significant findings from the report.
+    - Generate 2-3 relevant FAQ questions based on the report findings.
+    - Ensure the FAQ questions address the key points or discrepancies found in the report.
+    - Provide a concise and informative answer for each FAQ question.
+    - Output the FAQ questions and answers in the following format:
+      Q: Question 1
+      A: Answer 1
 
-Output the generated FAQ questions and answers in the following format:
+      Q: Question 2
+      A: Answer 2
 
-Q: Question 1
-A: Answer 1
+      Q: Question 3 (optional)
+      A: Answer 3 (optional)
 
-Q: Question 2
-A: Answer 2
+    Report:
+    {report}
 
-Q: Question 3 (optional)
-A: Answer 3 (optional)
-"""
+    Output the generated FAQ questions and answers:
+    """
 
     message = client.messages.create(
         model="claude-3-haiku-20240307",
@@ -268,8 +270,10 @@ A: Answer 3 (optional)
         system=system_faq_generation,
         messages=[{"role": "user", "content": system_faq_generation}]
     )
+
     generated_faq = message.content[0].text.strip().split("\n\n")
     faq_pairs = [faq.split("\n") for faq in generated_faq]
+
     return faq_pairs
 
 def incorporate_faq(article_html, faq_pairs, replace_existing=False):
