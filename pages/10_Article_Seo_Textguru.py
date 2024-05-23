@@ -132,10 +132,7 @@ Initial pre-processed transcript = "{raw_output}"
 Output: seo_optimized_article_with_faq (HTML string) in the target languages: {', '.join(target_languages)}:
 """
 
-    if additional_input:
-        additional_instructions = f"Additionally, incorporate the following input into the article and FAQ section:\n{additional_input}"
-    else:
-        additional_instructions = ""
+    additional_instructions = "" if additional_input is None else f"Additionally, incorporate the following input into the article and FAQ section:\n{additional_input}"
 
     message = client.messages.create(
         model="claude-3-haiku-20240307",
