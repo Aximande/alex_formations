@@ -30,6 +30,10 @@ def download_html(html_content, file_name):
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone, additional_input=None):
     """Generates an initial SEO-optimized article from a transcript, including FAQ section."""
+    additional_instructions = ""  # Initialize with a default empty string
+    if additional_input is not None:
+        additional_instructions = f"Additionally, incorporate the following input into the article and FAQ section:\n{additional_input}"
+
     system_processing = f"""
 Preprocess the transcript:
 
