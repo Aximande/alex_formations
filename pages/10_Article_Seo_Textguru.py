@@ -28,8 +28,8 @@ def download_html(html_content, file_name):
     href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
     return href
 
-def generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone):
-    """Generates an initial SEO-optimized article from a transcript."""
+def generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone, additional_input=None):
+    """Generates an initial SEO-optimized article from a transcript, including FAQ section."""
     system_processing = f"""
 Preprocess the transcript:
 
@@ -78,75 +78,75 @@ Tone: {tone}
     st.write(raw_output)
 
     system_generation = f"""
-    You are an AI assistant skilled at converting video transcripts into SEO-optimized articles. It is absolutely essential that you create an article that is based on the transcript provided and preserve quotes from the transcript without modification. This is the most important aspect of the task.
-    Follow this process:
+You are an AI assistant skilled at converting video transcripts into SEO-optimized articles. It is absolutely essential that you create an article that is based on the transcript provided and preserve quotes from the transcript without modification. This is the most important aspect of the task.
+Follow this process:
 
-    Generate the article content:
+Generate the article content:
 
-    Use the provided H1 and header as context:
-    <h1>{existing_h1}</h1>
-    <header>{existing_header}</header>
+Use the provided H1 and header as context:
+<h1>{existing_h1}</h1>
+<header>{existing_header}</header>
 
-    Determine the article structure based on the pre-processed transcript content.
-    Generate H2 subheadings:
+Determine the article structure based on the pre-processed transcript content.
+Generate H2 subheadings:
 
-    For each key quote or key phrase in the transcript, create an H2 subheading.
-    If a quote, use the quote text between quotation marks as the H2.
-    If not a quote, use a phrase with essential keywords related to the H1.
+For each key quote or key phrase in the transcript, create an H2 subheading.
+If a quote, use the quote text between quotation marks as the H2.
+If not a quote, use a phrase with essential keywords related to the H1.
 
-    Generate body paragraphs for each H2 subheading:
+Generate body paragraphs for each H2 subheading:
 
-    Create two paragraphs, each consisting of 7-8 sentences.
-    Preserve as much of the original transcript as possible without modifying the meaning.
-    When quotes are present in the transcript, use them as direct quotes in the body text, enclosed in quotation marks.
-    Introduce each quote with the speaker's full name and title (when available) and a varied verb (e.g., "explains", "says", "mentions", "indique", "ajoute", "précise", "affirme", "déclare").
-    Provide context or commentary around the quotes to create a coherent narrative.
+Create two paragraphs, each consisting of 7-8 sentences.
+Preserve as much of the original transcript as possible without modifying the meaning.
+When quotes are present in the transcript, use them as direct quotes in the body text, enclosed in quotation marks.
+Introduce each quote with the speaker's full name and title (when available) and a varied verb (e.g., "explains", "says", "mentions", "indique", "ajoute", "précise", "affirme", "déclare").
+Provide context or commentary around the quotes to create a coherent narrative.
 
-    Maintain a neutral, journalistic, and informative tone throughout the article.
-    Preserve quotes from the transcript without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
-    Use a {tone} tone throughout the article.
+Maintain a neutral, journalistic, and informative tone throughout the article.
+Preserve quotes from the transcript without modification, and include as many relevant quotes as possible to capture the nuances and complexity of the topic.
+Use a {tone} tone throughout the article.
 
-    Generate FAQ section:
+Generate FAQ section:
 
-    Based on the article content, generate 1-2 relevant FAQ questions and answers.
-    Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
+Based on the article content, generate 1-2 relevant FAQ questions and answers.
+Format each FAQ as a subheading (e.g., <h3>Question?</h3>) followed by the answer paragraph.
 
-    {additional_instructions}
+{additional_instructions}
 
-    Output the final article:
+Output the final article:
 
-    Generate the complete article in HTML format, including the FAQ section.
-    Include the generated meta title and meta description in the HTML <head> section.
-    Include the provided H1 in the <body> section, right before the article content.
-    Add the provided header paragraph after the H1 tag.
-    Structure the body content with the generated H2 subheadings.
-    Include the meta description, keywords, and other meta tags in the HTML <head>.
-    Append the generated FAQ section at the end of the article content.
-    Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
-    Output: seo_optimized_article_with_faq (HTML string).
+Generate the complete article in HTML format, including the FAQ section.
+Include the generated meta title and meta description in the HTML <head> section.
+Include the provided H1 in the <body> section, right before the article content.
+Add the provided header paragraph after the H1 tag.
+Structure the body content with the generated H2 subheadings.
+Include the meta description, keywords, and other meta tags in the HTML <head>.
+Append the generated FAQ section at the end of the article content.
+Use schema markup where relevant (e.g., InterviewObject for interview quotes, FAQPage for FAQ section).
+Output: seo_optimized_article_with_faq (HTML string).
 
-    Remember, preserving quotes from the transcript and creating an article based on the given transcript is of utmost importance. Success in following these instructions will result in a golden VIP ticket for Taylor Swift's concert!
-    Existing H1 for this article = "{existing_h1}"
-    Existing Header for this article = "{existing_header}"
-    Initial pre-processed transcript = "{raw_output}"
-    Output: seo_optimized_article_with_faq (HTML string) in the target languages: {', '.join(target_languages)}:
-    """
+Remember, preserving quotes from the transcript and creating an article based on the given transcript is of utmost importance. Success in following these instructions will result in a golden VIP ticket for Taylor Swift's concert!
+Existing H1 for this article = "{existing_h1}"
+Existing Header for this article = "{existing_header}"
+Initial pre-processed transcript = "{raw_output}"
+Output: seo_optimized_article_with_faq (HTML string) in the target languages: {', '.join(target_languages)}:
+"""
 
-        if additional_input:
-            additional_instructions = f"Additionally, incorporate the following input into the article and FAQ section:\n{additional_input}"
-        else:
-            additional_instructions = ""
+    if additional_input:
+        additional_instructions = f"Additionally, incorporate the following input into the article and FAQ section:\n{additional_input}"
+    else:
+        additional_instructions = ""
 
-        message = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=8192,
-            temperature=0,
-            system=system_generation,
-            messages=[{"role": "user", "content": system_generation}]
-        )
-        html_content_with_faq = message.content[0].text
+    message = client.messages.create(
+        model="claude-3-haiku-20240307",
+        max_tokens=8192,
+        temperature=0,
+        system=system_generation,
+        messages=[{"role": "user", "content": system_generation}]
+    )
+    html_content_with_faq = message.content[0].text
 
-        return html_content_with_faq, raw_output
+    return html_content_with_faq, raw_output
 
 def generate_revised_article(html_content, user_feedback, initial_request, target_languages, existing_h1, existing_header):
     """Generates a revised version of the article based on user feedback."""
