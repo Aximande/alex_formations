@@ -272,7 +272,7 @@ A: Answer 3 (optional)
     faq_pairs = [faq.split("\n") for faq in generated_faq]
     return faq_pairs
 
-def incorporate_faq(article_html, faq_pairs):
+def incorporate_faq(article_html, faq_pairs, replace_existing=False):
     """Incorporates the FAQ section with questions and answers into the SEO article HTML."""
     faq_section = "<h2>Frequently Asked Questions</h2>\n"
     for pair in faq_pairs:
@@ -280,11 +280,17 @@ def incorporate_faq(article_html, faq_pairs):
         answer = pair[1].replace("A: ", "").strip()
         faq_section += f"<h3>{question}</h3>\n<p>{answer}</p>\n"
 
-    # Find the closing </body> tag
-    closing_body_tag = article_html.find("</body>")
+    # Find the existing FAQ section (if any)
+    start_tag = article_html.find("<h2>Frequently Asked Questions</h2>")
+    end_tag = article_html.find("</h2>", start_tag + len("<h2>Frequently Asked Questions</h2>"))
 
-    # Insert the FAQ section before the closing </body> tag
-    revised_html = article_html[:closing_body_tag] + faq_section + article_html[closing_body_tag:]
+    if start_tag != -1 and end_tag != -1:
+        # Replace the existing FAQ section with the new one
+        revised_html = article_html[:start_tag] + faq_section + article_html[end_tag + len("</h2>"):]
+    else:
+        # Find the closing </body> tag and insert the FAQ section before it
+        closing_body_tag = article_html.find("</body>")
+        revised_html = article_html[:closing_body_tag] + faq_section + article_html[closing_body_tag:]
 
     return revised_html
 
@@ -379,7 +385,7 @@ def main():
             st.session_state['existing_h1'] = existing_h1
             st.session_state['existing_header'] = existing_header
 
-            # Generate FAQ questions based on the initial article content
+            # Generate FAQ questions and answers based on the initial article content
             faq_pairs = generate_faq_from_article(initial_article_with_faq, st.session_state['target_languages'])
 
             # Incorporate the FAQ section with questions and answers into the initial SEO article
@@ -413,8 +419,27 @@ def main():
             else:
                 with st.spinner("Running GPT-researcher..."):
                     research_report = asyncio.run(get_report(research_query, "research_report"))
-                    st.markdown('<div class="subheader">GPT-researcher Report</div>', unsafe_allow_html=True)
-                    st.write(research_report)
+                    with st.expander("GPT-researcher Report"):
+                        st.write(research_report)
+
+                    # Generate FAQ questions and answers based on the research report
+                    faq_pairs_from_report = generate_faq_from_report(research_report, st.session_state['target_languages'])
+
+                    # Replace the existing FAQ section with the new one from the research report
+                    if 'initial_article_with_faq' in st.session_state:
+                        initial_article_with_faq = incorporate_faq(st.session_state['initial_article_with_faq'], faq_pairs_from_report, replace_existing=True)
+                        st.session_state['initial_article_with_faq'] = initial_article_with_faq
+                    elif 'revised_article_with_faq' in st.session_state:
+                        revised_article_with_faq = incorporate_faq(st.session_state['revised_article_with_faq'], faq_pairs_from_report, replace_existing=True)
+                        st.session_state['revised_article_with_faq'] = revised_article_with_faq
+
+                    # Display the updated article with the new FAQ section
+                    if 'initial_article_with_faq' in st.session_state:
+                        st.markdown('<div class="subheader">Initial SEO Article with Updated FAQ</div>', unsafe_allow_html=True)
+                        components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article_with_faq"]}</div>', height=800, scrolling=True)
+                    elif 'revised_article_with_faq' in st.session_state:
+                        st.markdown('<div class="subheader">Revised SEO Article with Updated FAQ</div>', unsafe_allow_html=True)
+                        components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["revised_article_with_faq"]}</div>', height=800, scrolling=True)
 
     if 'initial_article_with_faq' in st.session_state:
         st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
@@ -460,7 +485,7 @@ def main():
                 article_with_additional_paragraphs = revise_article_with_yourtextguru(article_content, yourtextguru_feedback, st.session_state['target_languages'])
                 st.session_state['article_with_additional_paragraphs'] = article_with_additional_paragraphs
 
-                revised_article_with_yourtextguru_and_faq = incorporate_faq(article_with_additional_paragraphs, faq_questions)
+                revised_article_with_yourtextguru_and_faq = incorporate_faq(article_with_additional_paragraphs, faq_pairs, replace_existing=True)
                 st.session_state['revised_article_with_yourtextguru_and_faq'] = revised_article_with_yourtextguru_and_faq
 
                 st.markdown('<div class="subheader">Revised SEO Article with Additional Paragraphs and FAQ</div>', unsafe_allow_html=True)
