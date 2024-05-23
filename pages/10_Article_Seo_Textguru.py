@@ -280,9 +280,10 @@ def incorporate_faq(article_html, faq_pairs, replace_existing=False):
     """Incorporates the FAQ section with questions and answers into the SEO article HTML."""
     faq_section = "<h2>Frequently Asked Questions</h2>\n"
     for pair in faq_pairs:
-        question = pair[0].replace("Q: ", "").strip()
-        answer = pair[1].replace("A: ", "").strip()
-        faq_section += f"<h3>{question}</h3>\n<p>{answer}</p>\n"
+        if len(pair) >= 2:
+            question = pair[0].replace("Q: ", "").strip()
+            answer = pair[1].replace("A: ", "").strip()
+            faq_section += f"<h3>{question}</h3>\n<p>{answer}</p>\n"
 
     # Find the existing FAQ section (if any)
     start_tag = article_html.find("<h2>Frequently Asked Questions</h2>")
