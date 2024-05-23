@@ -389,12 +389,7 @@ def main():
             st.session_state['target_languages'] = target_languages
             st.session_state['existing_h1'] = existing_h1
             st.session_state['existing_header'] = existing_header
-
-            # Generate FAQ questions and answers based on the initial article content
-            faq_pairs = generate_faq_from_report(initial_article_with_faq, st.session_state['target_languages'])
-
-            # Incorporate the FAQ section with questions and answers into the initial SEO article
-            initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_pairs)
+            st.session_state['tone'] = tone
 
             st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
             st.expander("View Raw HTML").code(initial_article_with_faq)
@@ -427,24 +422,22 @@ def main():
                     with st.expander("GPT-researcher Report"):
                         st.write(research_report)
 
-                    # Generate FAQ questions and answers based on the research report
-                    faq_pairs_from_report = generate_faq_from_report(research_report, st.session_state['target_languages'])
+                    # Generate a new SEO article with updated FAQ based on the research report
+                    updated_article_with_faq, _ = generate_seo_article(
+                        st.session_state['transcript'],
+                        st.session_state['target_languages'],
+                        st.session_state['existing_h1'],
+                        st.session_state['existing_header'],
+                        st.session_state['tone'],
+                        research_report  # Pass the research report as additional input
+                    )
 
-                    # Replace the existing FAQ section with the new one from the research report
-                    if 'initial_article_with_faq' in st.session_state:
-                        initial_article_with_faq = incorporate_faq(st.session_state['initial_article_with_faq'], faq_pairs_from_report, replace_existing=True)
-                        st.session_state['initial_article_with_faq'] = initial_article_with_faq
-                    elif 'revised_article_with_faq' in st.session_state:
-                        revised_article_with_faq = incorporate_faq(st.session_state['revised_article_with_faq'], faq_pairs_from_report, replace_existing=True)
-                        st.session_state['revised_article_with_faq'] = revised_article_with_faq
+                    # Update the session state with the new article
+                    st.session_state['initial_article_with_faq'] = updated_article_with_faq
 
-                    # Display the updated article with the new FAQ section
-                    if 'initial_article_with_faq' in st.session_state:
-                        st.markdown('<div class="subheader">Initial SEO Article with Updated FAQ</div>', unsafe_allow_html=True)
-                        components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["initial_article_with_faq"]}</div>', height=800, scrolling=True)
-                    elif 'revised_article_with_faq' in st.session_state:
-                        st.markdown('<div class="subheader">Revised SEO Article with Updated FAQ</div>', unsafe_allow_html=True)
-                        components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{st.session_state["revised_article_with_faq"]}</div>', height=800, scrolling=True)
+                    st.markdown('<div class="subheader">Updated SEO Article with FAQ</div>', unsafe_allow_html=True)
+                    components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{updated_article_with_faq}</div>', height=800, scrolling=True)
+                    st.markdown(download_html(updated_article_with_faq, "updated_article_with_faq.html"), unsafe_allow_html=True)
 
     if 'initial_article_with_faq' in st.session_state:
         st.markdown('<div class="subheader">Feedback and Revision</div>', unsafe_allow_html=True)
@@ -490,13 +483,23 @@ def main():
                 article_with_additional_paragraphs = revise_article_with_yourtextguru(article_content, yourtextguru_feedback, st.session_state['target_languages'])
                 st.session_state['article_with_additional_paragraphs'] = article_with_additional_paragraphs
 
-                revised_article_with_yourtextguru_and_faq = incorporate_faq(article_with_additional_paragraphs, faq_pairs, replace_existing=True)
-                st.session_state['revised_article_with_yourtextguru_and_faq'] = revised_article_with_yourtextguru_and_faq
+                # Generate a new SEO article with updated FAQ and additional paragraphs based on the research report
+                updated_article_with_faq, _ = generate_seo_article(
+                    st.session_state['transcript'],
+                    st.session_state['target_languages'],
+                    st.session_state['existing_h1'],
+                    st.session_state['existing_header'],
+                    st.session_state['tone'],
+                    article_with_additional_paragraphs  # Pass the article with additional paragraphs as additional input
+                )
+
+                # Update the session state with the new article
+                st.session_state['revised_article_with_yourtextguru_and_faq'] = updated_article_with_faq
 
                 st.markdown('<div class="subheader">Revised SEO Article with Additional Paragraphs and FAQ</div>', unsafe_allow_html=True)
-                st.expander("View Raw HTML").code(revised_article_with_yourtextguru_and_faq)
-                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{revised_article_with_yourtextguru_and_faq}</div>', height=800, scrolling=True)
-                st.markdown(download_html(revised_article_with_yourtextguru_and_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
+                st.expander("View Raw HTML").code(updated_article_with_faq)
+                components.html(f'<div class="html-content" style="background-color: #FFFFFF;>{updated_article_with_faq}</div>', height=800, scrolling=True)
+                st.markdown(download_html(updated_article_with_faq, "revised_article_with_yourtextguru_and_faq.html"), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
