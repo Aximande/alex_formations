@@ -242,14 +242,23 @@ def fact_check_article(article_content, transcript):
     return fact_check_results
 
 def generate_faq_from_article(article_content, target_languages):
-    """Generates 2-3 FAQ questions based on the article content in the target languages."""
+    """Generates 2-3 FAQ questions and answers based on the article content in the target languages."""
     system_faq_generation = f"""
-You are an AI assistant skilled at generating 2-3 concise FAQ questions based on an article in the following target languages: {', '.join(target_languages)}. [...]
+You are an AI assistant skilled at generating 2-3 concise FAQ questions and answers based on an article in the following target languages: {', '.join(target_languages)}. [...]
 
 Article content:
 {article_content}
 
-Output the generated FAQ questions as a comma-separated list in the target languages:
+Output the generated FAQ questions and answers in the following format:
+
+Q: Question 1
+A: Answer 1
+
+Q: Question 2
+A: Answer 2
+
+Q: Question 3 (optional)
+A: Answer 3 (optional)
 """
 
     message = client.messages.create(
@@ -259,14 +268,17 @@ Output the generated FAQ questions as a comma-separated list in the target langu
         system=system_faq_generation,
         messages=[{"role": "user", "content": system_faq_generation}]
     )
-    generated_faq_questions = message.content[0].text.split(",")
-    return generated_faq_questions
+    generated_faq = message.content[0].text.strip().split("\n\n")
+    faq_pairs = [faq.split("\n") for faq in generated_faq]
+    return faq_pairs
 
-def incorporate_faq(article_html, faq_questions):
-    """Incorporates the FAQ section into the SEO article HTML."""
-    faq_section = f"<h2>Frequently Asked Questions</h2>\n"
-    for question in faq_questions:
-        faq_section += f"<h3>{question.strip()}</h3>\n<p>Answer will be provided here.</p>\n"
+def incorporate_faq(article_html, faq_pairs):
+    """Incorporates the FAQ section with questions and answers into the SEO article HTML."""
+    faq_section = "<h2>Frequently Asked Questions</h2>\n"
+    for pair in faq_pairs:
+        question = pair[0].replace("Q: ", "").strip()
+        answer = pair[1].replace("A: ", "").strip()
+        faq_section += f"<h3>{question}</h3>\n<p>{answer}</p>\n"
 
     # Find the closing </body> tag
     closing_body_tag = article_html.find("</body>")
@@ -368,10 +380,10 @@ def main():
             st.session_state['existing_header'] = existing_header
 
             # Generate FAQ questions based on the initial article content
-            faq_questions = generate_faq_from_article(initial_article_with_faq, st.session_state['target_languages'])
+            faq_pairs = generate_faq_from_article(initial_article_with_faq, st.session_state['target_languages'])
 
-            # Incorporate the FAQ section into the initial SEO article
-            initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_questions)
+            # Incorporate the FAQ section with questions and answers into the initial SEO article
+            initial_article_with_faq = incorporate_faq(initial_article_with_faq, faq_pairs)
 
             st.markdown('<div class="subheader">Initial SEO Article with FAQ</div>', unsafe_allow_html=True)
             st.expander("View Raw HTML").code(initial_article_with_faq)
