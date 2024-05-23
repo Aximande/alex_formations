@@ -1,3 +1,27 @@
+import streamlit as st
+import anthropic
+from dotenv import load_dotenv
+import os
+import asyncio
+import base64
+import streamlit.components.v1 as components
+from gpt_researcher import GPTResearcher
+
+
+# Load environment variables
+load_dotenv()
+
+# Initialize the API client
+api_key = os.getenv("ANTHROPIC_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+OPEN_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    st.error("Anthropic API key not found. Please set the ANTHROPIC_API_KEY environment variable.")
+    st.stop()
+
+client = anthropic.Anthropic(api_key=api_key)
+
 def download_html(html_content, file_name):
     """Convert HTML content to a base64-encoded data URI and generate a download link."""
     b64 = base64.b64encode(html_content.encode()).decode()
@@ -328,7 +352,6 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
     tone = st.selectbox("Select the tone of the article", ["Neutral", "Informative", "Persuasive"])
-    additional_keywords = st.text_input("Enter additional keywords (comma-separated)")
 
     if st.button("Generate SEO Article"):
         if not transcript:
@@ -336,7 +359,7 @@ def main():
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
         with st.spinner("Generating SEO article..."):
-            initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone, additional_keywords)
+            initial_article, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone)
             st.session_state['initial_article'] = initial_article
             st.session_state['raw_output'] = raw_output
             st.session_state['transcript'] = transcript
