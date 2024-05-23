@@ -352,7 +352,6 @@ def main():
                                       ["French", "Spanish", "German", "Hindi", "Afrikaans"],
                                       default="French")
     tone = st.selectbox("Select the tone of the article", ["Neutral", "Informative", "Persuasive"])
-    additional_keywords = st.text_input("Enter additional keywords (comma-separated)")
 
     if st.button("Generate SEO Article"):
         if not transcript:
