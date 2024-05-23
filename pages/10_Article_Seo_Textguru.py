@@ -140,7 +140,7 @@ Output: seo_optimized_article_with_faq (HTML string) in the target languages: {'
 
     message = client.messages.create(
         model="claude-3-haiku-20240307",
-        max_tokens=8192,
+        max_tokens=4096,
         temperature=0,
         system=system_generation,
         messages=[{"role": "user", "content": system_generation}]
