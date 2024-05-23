@@ -359,7 +359,7 @@ def main():
         elif len(transcript) < 100:
             st.warning("The transcript is quite short. The generated article may not be comprehensive.")
         with st.spinner("Generating SEO article..."):
-            initial_article_with_faq, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone, additional_keywords)
+            initial_article_with_faq, raw_output = generate_seo_article(transcript, target_languages, existing_h1, existing_header, tone)
             st.session_state['initial_article_with_faq'] = initial_article_with_faq
             st.session_state['raw_output'] = raw_output
             st.session_state['transcript'] = transcript
