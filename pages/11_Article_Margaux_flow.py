@@ -21,7 +21,11 @@ client = anthropic.Anthropic(api_key=api_key)
 
 #########################################
 
-
+def download_html(html_content, file_name):
+    """Convert HTML content to a base64-encoded data URI and generate a download link."""
+    b64 = base64.b64encode(html_content.encode()).decode()
+    href = f'<a href="data:text/html;base64,{b64}" download="{file_name}">Download {file_name}</a>'
+    return href
 
 def generate_article_v1(transcript, existing_h1, existing_header):
     system_prompt = "You are an AI assistant that generates SEO articles based on video transcripts."
@@ -103,6 +107,8 @@ def generate_yourtextguru_paragraphs(article, yourtextguru_keywords):
     return additional_paragraphs
 
 def main():
+    st.set_page_config(page_title="SEO Article Generator", page_icon=":memo:", layout="wide")
+
     st.title("SEO Article Generator")
 
     transcript = st.text_area("Enter the video transcript:")
@@ -111,37 +117,56 @@ def main():
 
     if st.button("Generate Article V1"):
         article_v1 = generate_article_v1(transcript, existing_h1, existing_header)
+        st.session_state['article_v1'] = article_v1
+        st.session_state['transcript'] = transcript
+
         st.subheader("Article V1")
         st.write(article_v1)
 
-        fact_check_result = fact_check_article(article_v1, transcript)
-        st.subheader("Fact-Check Results")
-        st.write(fact_check_result)
+    if 'article_v1' in st.session_state:
+        if st.button("Fact-Check Article"):
+            fact_check_result = fact_check_article(st.session_state['article_v1'], st.session_state['transcript'])
+            st.session_state['fact_check_result'] = fact_check_result
 
+            st.subheader("Fact-Check Results")
+            st.write(fact_check_result)
+
+    if 'fact_check_result' in st.session_state:
         if st.button("Generate Article V2"):
-            article_v2 = generate_article_v2(article_v1, fact_check_result)
+            article_v2 = generate_article_v2(st.session_state['article_v1'], st.session_state['fact_check_result'])
+            st.session_state['article_v2'] = article_v2
+
             st.subheader("Article V2")
             st.write(article_v2)
 
-            questions = []
-            for i in range(3):
-                question = st.text_input(f"Enter question {i+1} for the FAQ:")
-                if question:
-                    questions.append(question)
+    if 'article_v2' in st.session_state:
+        questions = []
+        for i in range(3):
+            question = st.text_input(f"Enter question {i+1} for the FAQ:")
+            if question:
+                questions.append(question)
 
-            if questions:
-                faq_answers = generate_faq_answers(questions, transcript, article_v2)
+        if questions:
+            if st.button("Generate FAQ Answers"):
+                faq_answers = generate_faq_answers(questions, st.session_state['transcript'], st.session_state['article_v2'])
+                st.session_state['faq_answers'] = faq_answers
+
                 st.subheader("FAQ Answers")
                 for i, answer in enumerate(faq_answers):
                     st.write(f"Question {i+1}: {questions[i]}")
                     st.write(f"Answer: {answer}")
 
-            yourtextguru_keywords = st.text_input("Enter Yourtextguru keywords (comma-separated):")
-            if yourtextguru_keywords:
+    if 'article_v2' in st.session_state:
+        yourtextguru_keywords = st.text_input("Enter Yourtextguru keywords (comma-separated):")
+
+        if yourtextguru_keywords:
+            if st.button("Generate Yourtextguru Paragraphs"):
                 yourtextguru_keywords = [kw.strip() for kw in yourtextguru_keywords.split(",")]
-                additional_paragraphs = generate_yourtextguru_paragraphs(article_v2, yourtextguru_keywords)
+                additional_paragraphs = generate_yourtextguru_paragraphs(st.session_state['article_v2'], yourtextguru_keywords)
+                st.session_state['additional_paragraphs'] = additional_paragraphs
+
                 st.subheader("Updated Article with Yourtextguru Paragraphs")
-                st.write(article_v2 + "\n\n" + additional_paragraphs)
+                st.write(st.session_state['article_v2'] + "\n\n" + additional_paragraphs)
 
 if __name__ == "__main__":
     main()
