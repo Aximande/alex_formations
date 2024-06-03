@@ -104,3 +104,4 @@ yarl==1.9.4
 zipp==3.17.0
 langchain-text-splitters==0.0.2
 fpdf
+phospho
