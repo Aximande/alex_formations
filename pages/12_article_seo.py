@@ -1,7 +1,9 @@
 import streamlit as st
 import anthropic
+import phospho
 from dotenv import load_dotenv
 import os
+import uuid
 
 # Load environment variables
 load_dotenv()
@@ -14,6 +16,10 @@ if not api_key:
     st.stop()
 
 client = anthropic.Anthropic(api_key=api_key)
+
+# Initialize Phospho client
+phospho.init(api_key="PHOSPHO_API_KEY", project_id="PHOSPHO_PROJECT_ID")
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 
 # Initialize session state variables
 def initialize_session_state():
@@ -35,11 +41,25 @@ def initialize_session_state():
         st.session_state['speakers_and_proper_nouns'] = ''
     if 'model_name' not in st.session_state:
         st.session_state['model_name'] = ''
+    if 'task_id' not in st.session_state:
+        st.session_state['task_id'] = str(uuid.uuid4())
 
 def add_seo_score(score, version):
     """Adds a new SEO score to the session state."""
     if score > 0:  # Only add positive scores
         st.session_state['seo_scores'].append({'Version': version, 'SEO Score': score})
+
+def log_user_feedback(flag, notes):
+    """Logs user feedback using Phospho."""
+    phospho.log(
+        input="User feedback",
+        output=notes,
+        metadata={
+            "task_id": st.session_state['task_id'],
+            "flag": flag,
+            "source": "user"
+        }
+    )
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header, speakers_and_proper_nouns, model_name):
     """Generates an initial SEO-optimized article from a transcript."""
@@ -77,6 +97,14 @@ Output: seo_optimized_article (string) in the target languages: {', '.join(targe
     )
 
     article_content = message.content[0].text
+
+    # Log the task with Phospho
+    phospho.log(
+        input=system_generation,
+        output=article_content,
+        metadata={"task": "generate_seo_article"}
+    )
+
     return article_content
 
 def generate_revised_article(article_content, user_feedback, target_languages, existing_h1, existing_header, speakers_and_proper_nouns, model_name):
@@ -115,6 +143,14 @@ def generate_revised_article(article_content, user_feedback, target_languages, e
         messages=[{"role": "user", "content": system_revision}]
     )
     revised_article_content = message.content[0].text
+
+    # Log the task with Phospho
+    phospho.log(
+        input=system_revision,
+        output=revised_article_content,
+        metadata={"task": "generate_revised_article"}
+    )
+
     return revised_article_content
 
 def fact_check_article(article_content, transcript, model_name):
@@ -175,6 +211,14 @@ Provide your full analysis and fact check questions in a single response. No nee
     )
 
     fact_check_results = message.content[0].text
+
+    # Log the task with Phospho
+    phospho.log(
+        input=fact_check_prompt,
+        output=fact_check_results,
+        metadata={"task": "fact_check_article"}
+    )
+
     return fact_check_results
 
 def revise_article_with_yourtextguru(article_content, yourtextguru_feedback, target_languages, model_name):
@@ -201,6 +245,13 @@ Output: two_additional_paragraphs (string)
 
     # Append the additional paragraphs to the SEO article
     article_with_additional_paragraphs = article_content + "\n\n" + "\n\n".join(two_additional_paragraphs.split("\n"))
+
+    # Log the task with Phospho
+    phospho.log(
+        input=system_additional_paragraphs,
+        output=article_with_additional_paragraphs,
+        metadata={"task": "revise_article_with_yourtextguru"}
+    )
 
     return article_with_additional_paragraphs
 
@@ -249,6 +300,13 @@ def create_seo_article_with_yourtextguru(initial_article_content, yourtextguru_f
     )
     article_content_with_yourtextguru_and_faq = message.content[0].text
 
+    # Log the task with Phospho
+    phospho.log(
+        input=system_generation,
+        output=article_content_with_yourtextguru_and_faq,
+        metadata={"task": "create_seo_article_with_yourtextguru"}
+    )
+
     return article_content_with_yourtextguru_and_faq
 
 # Initialize session state variables
@@ -286,6 +344,9 @@ if st.button("Generate SEO Article"):
 
     st.markdown('### Current Article')
     st.write(st.session_state['current_article'])  # Display the current_article content
+
+    # Log initial user feedback
+    log_user_feedback("success", "Generated initial SEO article.")
 
 # Collect initial SEO score
 if 'initial_article' in st.session_state and st.session_state['initial_article']:
@@ -328,6 +389,9 @@ if 'initial_article' in st.session_state and st.session_state['initial_article']
             st.markdown('### Current Article')
             st.write(st.session_state['current_article'])
 
+            # Log revised user feedback
+            log_user_feedback("success", "Generated revised SEO article based on user feedback.")
+
     if yourtextguru_feedback:
         if yourtextguru_method == "Revise Current Article":
             yourtextguru_revised_article = revise_article_with_yourtextguru(
@@ -351,15 +415,26 @@ if 'initial_article' in st.session_state and st.session_state['initial_article']
         st.markdown('### Current Article')
         st.write(st.session_state['current_article'])
 
+        # Log YourtextGuru feedback
+        log_user_feedback("success", "Generated article incorporating YourtextGuru feedback.")
+
+        # Fact check button
+        if st.button("Run Fact-Checking on Revised Article"):
+            st.session_state['fact_check_clicked'] = True
+
+# Run fact-checking if button clicked
+if st.session_state.get('fact_check_clicked'):
+    fact_check_results = fact_check_article(st.session_state['current_article'], st.session_state['transcript'], st.session_state['model_name'])
+    st.markdown('## Fact-Check Results')
+    st.write(fact_check_results)
+    st.session_state['fact_check_clicked'] = False
+
 # Collect revised SEO score
 if 'current_article' in st.session_state and st.session_state['current_article'] != st.session_state['initial_article']:
     st.markdown('### Enter Revised SEO Score')
     revised_seo_score = st.number_input("Revised SEO score:", min_value=0, max_value=100, value=0, step=1, key='revised_seo_score')
     if st.button("Submit Revised SEO Score"):
         add_seo_score(revised_seo_score, 'Revised')
-
-st.markdown('### SEO Score History')
-st.table(st.session_state['seo_scores'])
 
 st.markdown('---')
 
