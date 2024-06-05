@@ -18,7 +18,7 @@ if not api_key:
 client = anthropic.Anthropic(api_key=api_key)
 
 # Initialize Phospho client
-phospho.init(api_key="PHOSPHO_API_KEY", project_id="PHOSPHO_PROJECT_ID")
+phospho.init(api_key=os.getenv("PHOSPHO_API_KEY"), project_id=os.getenv("PHOSPHO_PROJECT_ID"))
 OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 
 # Initialize session state variables
@@ -51,14 +51,11 @@ def add_seo_score(score, version):
 
 def log_user_feedback(flag, notes):
     """Logs user feedback using Phospho."""
-    phospho.log(
-        input="User feedback",
-        output=notes,
-        metadata={
-            "task_id": st.session_state['task_id'],
-            "flag": flag,
-            "source": "user"
-        }
+    phospho.user_feedback(
+        flag=flag,
+        source="user",
+        task_id=st.session_state['task_id'],
+        notes=notes,
     )
 
 def generate_seo_article(transcript, target_languages, existing_h1, existing_header, speakers_and_proper_nouns, model_name):
@@ -232,6 +229,9 @@ You are an AI assistant skilled at generating additional content for SEO-optimiz
 - Make sure the new content is coherent, informative, and neutral.
 
 Output: two_additional_paragraphs (string)
+
+### Output: seo_optimized_article_with_yourtextguru_and_faq (plain text string) in the target languages: {', '.join(target_languages)}:
+
 """
 
     message = client.messages.create(
