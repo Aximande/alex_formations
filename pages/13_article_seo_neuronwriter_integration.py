@@ -381,14 +381,11 @@ st.markdown('---')
 
 # Collect user feedback and generate revised article
 if 'initial_article' in st.session_state and st.session_state['initial_article']:
-    st.markdown('## Step 3: Feedback and Revision')
+    st.markdown('## Step 3: NeuronWriter Optimization and Revision')
 
     col1, col2 = st.columns(2)
 
     with col1:
-        user_feedback = st.text_area("Enter your feedback (optional):", height=200)
-    with col2:
-        st.markdown("### NeuronWriter Optimization")
         if st.button("Optimize with NeuronWriter"):
             optimized_article = revise_article_with_neuronwriter(
                 st.session_state['current_article'],
@@ -400,29 +397,28 @@ if 'initial_article' in st.session_state and st.session_state['initial_article']
             st.write(st.session_state['current_article'])
             log_user_feedback("success", "Generated article incorporating NeuronWriter recommendations.")
 
-    if st.button("Generate Revised Article"):
-        if user_feedback:
-            revised_article = generate_revised_article(
-                st.session_state['current_article'],
-                user_feedback,
-                st.session_state['target_languages'],
-                st.session_state['existing_h1'],
-                st.session_state['existing_header'],
-                st.session_state['speakers_and_proper_nouns'],
-                st.session_state['model_name']
-            )
-            st.session_state['current_article'] = revised_article
+        # Display NeuronWriter Keywords
+        if st.session_state['neuronwriter_keywords']:
+            st.markdown('### NeuronWriter Recommendations')
+            st.json(st.session_state['neuronwriter_keywords'])
 
-            st.markdown('### Current Article')
-            st.write(st.session_state['current_article'])
-
-            # Log revised user feedback
-            log_user_feedback("success", "Generated revised SEO article based on user feedback.")
-
-    # Display NeuronWriter Keywords
-    if st.session_state['neuronwriter_keywords']:
-        st.markdown('### NeuronWriter Recommendations')
-        st.json(st.session_state['neuronwriter_keywords'])
+    with col2:
+        user_feedback = st.text_area("Enter your feedback for further revision (optional):", height=200)
+        if st.button("Apply Manual Revision"):
+            if user_feedback:
+                revised_article = generate_revised_article(
+                    st.session_state['current_article'],
+                    user_feedback,
+                    st.session_state['target_languages'],
+                    st.session_state['existing_h1'],
+                    st.session_state['existing_header'],
+                    st.session_state['speakers_and_proper_nouns'],
+                    st.session_state['model_name']
+                )
+                st.session_state['current_article'] = revised_article
+                st.markdown('### Manually Revised Article')
+                st.write(st.session_state['current_article'])
+                log_user_feedback("success", "Generated revised SEO article based on user feedback.")
 
     # Fact check button
     if st.button("Run Fact-Checking on Current Article"):
